@@ -24,6 +24,13 @@
                     <x-nav-link href="{{ route('relatorios') }}">
                         <i class="fas fa-chart-line mr-2"></i>{{ __('Relatórios') }}
                     </x-nav-link>
+
+                    @if(auth()->user()->admin == 1)
+                    <x-nav-link href="#">
+                        <i class="fas fa-user mr-2"></i>{{ __('Utilizadores') }}
+                    </x-nav-link>
+                    @endif
+
                     <x-nav-link href="{{ route('about') }}">
                         <i class="fas fa-info-circle mr-2"></i>{{ __('About') }}
                     </x-nav-link>
@@ -50,7 +57,7 @@
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
+                                onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 <i class="fas fa-sign-out-alt mr-2"></i>{{ __('Sair') }}
                             </x-dropdown-link>
@@ -75,11 +82,21 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 <i class="fas fa-tachometer-alt mr-2"></i>{{ __('Dashboard') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#">
+            <x-responsive-nav-link href="{{ route('controlos') }}">
                 <i class="fas fa-sliders-h mr-2"></i>{{ __('Controles') }}
             </x-responsive-nav-link>
-            <x-responsive-nav-link href="#">
+            <x-responsive-nav-link href="{{ route('relatorios') }}">
                 <i class="fas fa-chart-line mr-2"></i>{{ __('Relatórios') }}
+            </x-responsive-nav-link>
+
+            @if(auth()->user()->admin == 1)
+            <x-responsive-nav-link href="#">
+                <i class="fas fa-user mr-2"></i>{{ __('Utilizadores') }}
+            </x-responsive-nav-link>
+            @endif
+
+            <x-responsive-nav-link href="{{ route('about') }}">
+                <i class="fas fa-info-circle mr-2"></i>{{ __('About') }}
             </x-responsive-nav-link>
         </div>
 
@@ -97,7 +114,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
+                        onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         <i class="fas fa-sign-out-alt mr-2"></i>{{ __('Sair') }}
                     </x-responsive-nav-link>
