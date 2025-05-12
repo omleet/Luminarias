@@ -109,11 +109,11 @@
 
             <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Teste para o Vue -->
-            <div id="app" class="bg-white rounded-lg p-6">
+                <!-- Teste para o Vue -->
+                <div id="app" class="bg-white rounded-lg p-6">
                     <example-component></example-component>
-                </div>    
-            <!-- Temperature Chart -->
+                </div>
+                <!-- Temperature Chart -->
                 <div class="bg-white shadow rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
                         <i class="fas fa-thermometer-half text-red-500 mr-2"></i> Variação de Temperatura
@@ -147,6 +147,7 @@
                                 Desligar
                             </button>
                         </div>
+                        <div id="led-control-status" class="mt-2 text-sm text-gray-600"></div>
                     </div>
 
                     <!-- Motion Sensor Settings -->
@@ -206,60 +207,100 @@
         </div>
     </div>
 
-    @push('scripts')
+    
     <script>
-        // Aqui você pode adicionar a lógica para atualizar os valores dos sensores em tempo real
-        // via AJAX ou WebSocket quando integrar com o ESP
+    // Configuration
+    const ESP_IP = '192.168.1.100'; // VERIFY THIS IS YOUR ESP's IP
+    const UPDATE_INTERVAL = 2000; // 2 seconds
+    
+    // DOM Elements
+    const ledStatusElement = document.getElementById('led-status');
+    const ledOnElement = document.getElementById('led-on');
+    const ledOffElement = document.getElementById('led-off');
+    const statusMessage = document.getElementById('led-control-status');
+    
+    // Update LED display
+    function updateLedDisplay(status) {
+        console.log("Updating LED display to:", status);
+        ledStatusElement.textContent = status;
         
-        // Exemplo de atualização simulada
-        setInterval(() => {
-            // Simular dados dos sensores
-            document.getElementById('temperature-value').textContent = Math.floor(Math.random() * 10 + 20) + '°C';
-            document.getElementById('light-value').textContent = Math.floor(Math.random() * 500 + 100) + ' lx';
-            document.getElementById('humidity-value').textContent = Math.floor(Math.random() * 30 + 50) + '%';
+        if (status === 'ON') {
+            ledOnElement.classList.remove('hidden');
+            ledOffElement.classList.add('hidden');
+            // Visual feedback
+            document.querySelector('#led-status').closest('.bg-white')
+                .classList.add('ring-2', 'ring-green-500');
+        } else {
+            ledOnElement.classList.add('hidden');
+            ledOffElement.classList.remove('hidden');
+            document.querySelector('#led-status').closest('.bg-white')
+                .classList.remove('ring-2', 'ring-green-500');
+        }
+    }
+    
+    // Get current LED state from ESP
+    async function fetchLedState() {
+        try {
+            const response = await fetch(`http://${ESP_IP}/status`);
+            if (!response.ok) throw new Error('Network error');
+            const data = await response.json();
+            return data.led;
+        } catch (error) {
+            console.error('Error fetching LED state:', error);
+            statusMessage.textContent = 'Erro ao obter status';
+            return null;
+        }
+    }
+    
+    // Control LED
+    async function controlLed(state) {
+        try {
+            statusMessage.textContent = `Enviando comando para ${state === 'on' ? 'LIGAR' : 'DESLIGAR'}...`;
             
-            // Simular estado do LED (alternar a cada 5 segundos)
-            if(Math.random() > 0.5) {
-                document.getElementById('led-status').textContent = 'ON';
-                document.getElementById('led-on').classList.remove('hidden');
-                document.getElementById('led-off').classList.add('hidden');
-            } else {
-                document.getElementById('led-status').textContent = 'OFF';
-                document.getElementById('led-on').classList.add('hidden');
-                document.getElementById('led-off').classList.remove('hidden');
-            }
+            const response = await fetch(`http://${ESP_IP}/led/${state}`, {
+                method: 'POST'
+            });
             
-            // Simular sensor de movimento
-            if(Math.random() > 0.7) {
-                document.getElementById('movement-status').textContent = 'DETECTADO';
-                document.getElementById('movement-active').classList.remove('hidden');
-                document.getElementById('movement-inactive').classList.add('hidden');
-            } else {
-                document.getElementById('movement-status').textContent = 'INATIVO';
-                document.getElementById('movement-active').classList.add('hidden');
-                document.getElementById('movement-inactive').classList.remove('hidden');
-            }
-        }, 2000);
+            if (!response.ok) throw new Error('Command failed');
+            
+            // Verify change
+            const newState = await fetchLedState();
+            if (newState !== state.toUpperCase()) throw new Error('State not changed');
+            
+            updateLedDisplay(newState);
+            statusMessage.textContent = `LED ${state === 'on' ? 'LIGADO' : 'DESLIGADO'} com sucesso (${new Date().toLocaleTimeString()})`;
+        } catch (error) {
+            console.error('Error controlling LED:', error);
+            statusMessage.textContent = `ERRO: ${error.message}`;
+            statusMessage.classList.add('text-red-500');
+            setTimeout(() => statusMessage.classList.remove('text-red-500'), 3000);
+        }
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("Dashboard initialized");
         
-        // Controles
-        document.getElementById('led-on-btn').addEventListener('click', function() {
-            // Enviar comando para ligar o LED via API
-            document.getElementById('led-status').textContent = 'ON';
-            document.getElementById('led-on').classList.remove('hidden');
-            document.getElementById('led-off').classList.add('hidden');
+        // Button event listeners
+        document.getElementById('led-on-btn').addEventListener('click', () => controlLed('on'));
+        document.getElementById('led-off-btn').addEventListener('click', () => controlLed('off'));
+        
+        // Sensitivity slider
+        document.getElementById('sensitivity-range').addEventListener('input', (e) => {
+            document.getElementById('sensitivity-value').textContent = e.target.value;
         });
         
-        document.getElementById('led-off-btn').addEventListener('click', function() {
-            // Enviar comando para desligar o LED via API
-            document.getElementById('led-status').textContent = 'OFF';
-            document.getElementById('led-on').classList.add('hidden');
-            document.getElementById('led-off').classList.remove('hidden');
+        // Initial load
+        fetchLedState().then(state => {
+            if (state) updateLedDisplay(state);
         });
         
-        document.getElementById('sensitivity-range').addEventListener('input', function() {
-            document.getElementById('sensitivity-value').textContent = this.value;
-            // Enviar configuração de sensibilidade para o ESP
-        });
+        // Auto-refresh
+        setInterval(async () => {
+            const state = await fetchLedState();
+            if (state) updateLedDisplay(state);
+        }, UPDATE_INTERVAL);
+    });
     </script>
-    @endpush
+    
 </x-app-layout>
