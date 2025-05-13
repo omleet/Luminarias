@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HistoryController;
 
 Route::get('/', function () {
     return view('auth/login');
@@ -22,6 +23,15 @@ Route::middleware(['auth'])->group(function () {
     Route::view('/controlos', 'controlos.index')->name('controlos');
     Route::view('/relatorios', 'relatorios.index')->name('relatorios');
 });
+
+
+
+
+
+
+Route::post('/history', [HistoryController::class, 'store']);
+Route::get('/history', [HistoryController::class, 'index']);
+
 
 
 

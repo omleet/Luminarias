@@ -210,7 +210,7 @@
     
     <script>
     // Configuration
-    const ESP_IP = '192.168.1.100'; // VERIFY THIS IS YOUR ESP's IP
+    const ESP_IP = '192.168.178.140'; // VERIFY THIS IS YOUR ESP's IP
     const UPDATE_INTERVAL = 2000; // 2 seconds
     
     // DOM Elements
@@ -251,6 +251,28 @@
             return null;
         }
     }
+
+    async function fetchLightLevel() {
+    try {
+        const response = await fetch(`http://${ESP_IP}/light`);
+        const data = await response.json();
+        
+        const analogValue = data.light;
+        const lux = analogToLux(analogValue);
+        
+        document.getElementById('light-value').textContent = `${lux} lx`;
+    } catch (error) {
+        console.error("Failed to fetch light level:", error);
+    }
+}
+
+function analogToLux(analogValue) {
+    const inverted = 1023 - analogValue;
+    const lux = Math.round((inverted / 1023) * 1000);  // Adjust max lux as needed
+    return lux;
+}
+
+
     
     // Control LED
     async function controlLed(state) {
@@ -294,13 +316,60 @@
         fetchLedState().then(state => {
             if (state) updateLedDisplay(state);
         });
+
+        async function uploadToDatabase(lux, temp, state) {
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    try {
+        await fetch('http://localhost/history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': token,
+            },
+            body: JSON.stringify({
+                light: lux,
+                temperature: temp,
+                led_state: state
+            })
+        });
+        console.log("Data saved to DB.");
+    } catch (err) {
+        console.error("Failed to save to DB:", err);
+    }
+}
+
         
         // Auto-refresh
         setInterval(async () => {
-            const state = await fetchLedState();
-            if (state) updateLedDisplay(state);
-        }, UPDATE_INTERVAL);
-    });
-    </script>
+    const state = await fetchLedState();
     
+    try {
+        const response = await fetch(`http://${ESP_IP}/light`);
+        const data = await response.json();
+        const analogValue = data.light;
+        const lux = analogToLux(analogValue);
+        document.getElementById('light-value').textContent = `${lux} lx`;
+
+        // Auto control LED
+        if (lux < 150 && state !== 'ON') {
+            await controlLed('on');
+        } else if (lux >= 150 && state !== 'OFF') {
+            await controlLed('off');
+        }
+        
+        if (state) updateLedDisplay(state);
+        uploadToDatabase(lux, analogValue, state);
+    } catch (error) {
+        console.error("Error in light/LED logic:", error);
+    }
+
+    
+}, UPDATE_INTERVAL);
+    });
+     //http://192.168.1.100/led/on
+    //http://192.168.1.100/led/off
+     //http://192.168.1.100/status
+    </script>
+   
 </x-app-layout>
