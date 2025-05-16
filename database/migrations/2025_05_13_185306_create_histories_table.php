@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->float('light');          // Store lux value
             $table->float('temperature')->nullable(); // Optional if you're not always sending it
-            $table->string('led_state');    // true = ON, false = OFF
+            $table->string('led_state');
+            $table->string('motion'); 
+            $table->float('humidity');      // true = ON, false = OFF
             $table->timestamps();
         });
     }

@@ -13,6 +13,8 @@ class HistoryController extends Controller
             'light' => $request->light,
             'temperature' => $request->temperature,
             'led_state' => $request->led_state,
+            'motion' => $request->motion,
+            'humidity' => $request->humidity,
         ]);
     
         return response()->json(['message' => 'Saved']);

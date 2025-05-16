@@ -21,10 +21,10 @@
                                 <dd class="flex items-baseline">
                                     <div class="text-2xl font-semibold text-gray-900" id="movement-status">--</div>
                                     <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600 hidden" id="movement-active">
-                                        <i class="fas fa-circle mr-1 text-xs"></i> Ativo
+                                        <i class="fas fa-circle mr-1 text-xs"></i> Ligado
                                     </div>
                                     <div class="ml-2 flex items-baseline text-sm font-semibold text-gray-500" id="movement-inactive">
-                                        <i class="fas fa-circle mr-1 text-xs"></i> Inativo
+                                        <i class="fas fa-circle mr-1 text-xs"></i> Desligado
                                     </div>
                                 </dd>
                             </div>
@@ -211,187 +211,167 @@
     <script>
     // Configuration
     const ESP_IP = '192.168.1.100'; // VERIFY THIS IS YOUR ESP's IP
-    const UPDATE_INTERVAL = 2000; // 2 seconds
-    
+    const UPDATE_INTERVAL = 2000;   // 2 seconds
+
     // DOM Elements
-    const ledStatusElement = document.getElementById('led-status');
-    const ledOnElement = document.getElementById('led-on');
-    const ledOffElement = document.getElementById('led-off');
-    const statusMessage = document.getElementById('led-control-status');
-    const lightValueElement = document.getElementById('light-value');
-    const temperatureElement = document.getElementById('temperature-value');
-    const humidityElement = document.getElementById('humidity-value');
-    
+    const ledStatusElement    = document.getElementById('led-status');
+    const ledOnElement        = document.getElementById('led-on');
+    const ledOffElement       = document.getElementById('led-off');
+    const statusMessage       = document.getElementById('led-control-status');
+    const lightValueElement   = document.getElementById('light-value');
+    const temperatureElement  = document.getElementById('temperature-value');
+    const humidityElement     = document.getElementById('humidity-value');
+
+    // PIR Elements
+    const motionStatusElement = document.getElementById('movement-status');
+    const motionActiveBadge   = document.getElementById('movement-active');
+    const motionInactiveBadge = document.getElementById('movement-inactive');
+    const motionContainer     = motionStatusElement.closest('.bg-white');
+
     // Update LED display
     function updateLedDisplay(status) {
-        console.log("Updating LED display to:", status);
         ledStatusElement.textContent = status;
-        
         if (status === 'ON') {
             ledOnElement.classList.remove('hidden');
             ledOffElement.classList.add('hidden');
-            // Visual feedback
-            document.querySelector('#led-status').closest('.bg-white')
+            ledStatusElement.closest('.bg-white')
                 .classList.add('ring-2', 'ring-green-500');
         } else {
             ledOnElement.classList.add('hidden');
             ledOffElement.classList.remove('hidden');
-            document.querySelector('#led-status').closest('.bg-white')
+            ledStatusElement.closest('.bg-white')
                 .classList.remove('ring-2', 'ring-green-500');
         }
     }
-    
-    // Get current LED state from ESP
+
+    // Update Motion display (big text, badge, ring)
+    function updateMotionDisplay(active) {
+        // text
+        motionStatusElement.textContent = active ? 'Ligado' : 'Inativo';
+        // badges
+        motionActiveBadge.classList.toggle('hidden', !active);
+        motionInactiveBadge.classList.toggle('hidden', active);
+        // ring
+        motionContainer.classList.toggle('ring-2', active);
+        motionContainer.classList.toggle('ring-green-500', active);
+    }
+
+    // Generic fetch+json helper
+    async function fetchJson(path, opts = {}) {
+        const res = await fetch(`http://${ESP_IP}${path}`, opts);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+    }
+
+    // Fetchers
     async function fetchLedState() {
         try {
-            const response = await fetch(`http://${ESP_IP}/status`);
-            if (!response.ok) throw new Error('Network error');
-            const data = await response.json();
-            return data.led;
-        } catch (error) {
-            console.error('Error fetching LED state:', error);
+            const data = await fetchJson('/status');
+            return data.led;  // "ON" or "OFF"
+        } catch (e) {
             statusMessage.textContent = 'Erro ao obter status';
-            return null;
+            throw e;
         }
     }
 
-    // Fetch light level
     async function fetchLightLevel() {
-        try {
-            const response = await fetch(`http://${ESP_IP}/light`);
-            const data = await response.json();
-            
-            const analogValue = data.light;
-            const lux = analogToLux(analogValue);
-            
-            lightValueElement.textContent = `${lux} lx`;
-        } catch (error) {
-            console.error("Failed to fetch light level:", error);
-        }
+        const data = await fetchJson('/light');
+        const lux = analogToLux(data.light);
+        lightValueElement.textContent = `${lux} lx`;
+        return { analog: data.light, lux };
+    }
+
+    async function fetchTemperatureHumidity() {
+        const data = await fetchJson('/temperature');
+        temperatureElement.textContent = `${data.temperature} °C`;
+        humidityElement.textContent    = `${data.humidity} %`;
+        return data;
+    }
+
+    async function fetchMotionRaw() {
+        const data = await fetchJson('/motion');
+       
+        return data.motion;  // true or false
     }
 
     // Convert analog value to lux
     function analogToLux(analogValue) {
         const inverted = 1024 - analogValue;
-        const lux = Math.round((inverted / 1024) * 1000);  // Adjust max lux as needed
-        return lux;
+        return Math.round((inverted / 1024) * 1000);
     }
-    
-    // Fetch temperature and humidity from the ESP8266
-    async function fetchTemperatureHumidity() {
-        try {
-            const response = await fetch(`http://${ESP_IP}/temperature`);
-            const data = await response.json();
 
-            // Display the temperature and humidity
-            const temperature = data.temperature;
-            const humidity = data.humidity;
-
-            temperatureElement.textContent = `${temperature} °C`;
-            humidityElement.textContent = `${humidity} %`;
-        } catch (error) {
-            console.error("Failed to fetch temperature and humidity:", error);
-        }
-    }
-    
     // Control LED
     async function controlLed(state) {
+        statusMessage.textContent = `Enviando comando para ${state==='on'?'LIGAR':'DESLIGAR'}...`;
+        await fetch(`http://${ESP_IP}/led/${state}`, { method: 'POST' });
+        const newState = await fetchLedState();
+        updateLedDisplay(newState);
+        statusMessage.textContent = `LED ${state==='on'?'LIGADO':'DESLIGADO'} (${new Date().toLocaleTimeString()})`;
+    }
+
+    // Upload data to DB
+    async function uploadToDatabase(lux, temperature, ledState,motion,humidity) {
+        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         try {
-            statusMessage.textContent = `Enviando comando para ${state === 'on' ? 'LIGAR' : 'DESLIGAR'}...`;
-            
-            const response = await fetch(`http://${ESP_IP}/led/${state}`, {
-                method: 'POST'
+            await fetch('http://localhost/history', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                    'X-CSRF-TOKEN': token
+                },
+                body: JSON.stringify({ light: lux, temperature, led_state: ledState,motion: motion,humidity: humidity })
             });
-            
-            if (!response.ok) throw new Error('Command failed');
-            
-            // Verify change
-            const newState = await fetchLedState();
-            if (newState !== state.toUpperCase()) throw new Error('State not changed');
-            
-            updateLedDisplay(newState);
-            statusMessage.textContent = `LED ${state === 'on' ? 'LIGADO' : 'DESLIGADO'} com sucesso (${new Date().toLocaleTimeString()})`;
-        } catch (error) {
-            console.error('Error controlling LED:', error);
-            statusMessage.textContent = `ERRO: ${error.message}`;
-            statusMessage.classList.add('text-red-500');
-            setTimeout(() => statusMessage.classList.remove('text-red-500'), 3000);
+            console.log("Data saved to DB.");
+        } catch (err) {
+            console.error("Failed to save to DB:", err);
         }
     }
-    
+
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-        console.log("Dashboard initialized");
-        
-        // Button event listeners
-        document.getElementById('led-on-btn').addEventListener('click', () => controlLed('on'));
+        // Button listeners
+        document.getElementById('led-on-btn').addEventListener('click',  () => controlLed('on'));
         document.getElementById('led-off-btn').addEventListener('click', () => controlLed('off'));
-        
-        // Sensitivity slider
-        document.getElementById('sensitivity-range').addEventListener('input', (e) => {
-            document.getElementById('sensitivity-value').textContent = e.target.value;
-        });
-        
-        // Initial load
-        fetchLedState().then(state => {
-            if (state) updateLedDisplay(state);
-        });
 
-        // Upload data to DB (with light, temperature, and LED state)
-        async function uploadToDatabase(lux, temp, state) {
-            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            try {
-                await fetch('http://localhost/history', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': token,
-                    },
-                    body: JSON.stringify({
-                        light: lux,
-                        temperature: temp,
-                        led_state: state
-                    })
-                });
-                console.log("Data saved to DB.");
-            } catch (err) {
-                console.error("Failed to save to DB:", err);
-            }
-        }
-        
-        // Auto-refresh
+        // Clear initial displays
+        updateLedDisplay('OFF');
+        updateMotionDisplay(false);
+
+        // Polling loop
         setInterval(async () => {
-            const state = await fetchLedState();
-            
             try {
-                // Fetch the light level
-                await fetchLightLevel();
+                // 1) Fetch LED, light and temp in parallel
+                const [ ledState, lightData, tempHum,rawMotion ] = await Promise.all([
+                    fetchLedState(),
+                    fetchLightLevel(),
+                    fetchTemperatureHumidity(),
+                    fetchMotionRaw()
+                ]);
+                updateLedDisplay(ledState);
+                updateMotionDisplay(rawMotion); // 2)  display motion
+               
+                
+                
 
-                // Fetch temperature and humidity
-                await fetchTemperatureHumidity();
-
-                const response = await fetch(`http://${ESP_IP}/light`);
-                const data = await response.json();
-                const analogValue = data.light;
-                const lux = analogToLux(analogValue);
-
-                // Auto control LED based on lux value
-                if (lux < 150 && state !== 'ON') {
+                // 3) Auto‑LED by lux
+                if (lightData.lux < 150 && ledState !== 'ON') {
                     await controlLed('on');
-                } else if (lux >= 150 && state !== 'OFF') {
+                } else if (lightData.lux >= 150 && ledState !== 'OFF') {
                     await controlLed('off');
                 }
-                
-                if (state) updateLedDisplay(state);
-                uploadToDatabase(lux, analogValue, state);
-            } catch (error) {
-                console.error("Error in light/LED logic:", error);
-            }
 
+                // 4) Save to DB
+                await uploadToDatabase(lightData.lux, tempHum.temperature, ledState,rawMotion,tempHum.humidity);
+
+            } catch (err) {
+                console.error('Polling error:', err);
+            }
         }, UPDATE_INTERVAL);
     });
 </script>
+
+
 
    
 </x-app-layout>
