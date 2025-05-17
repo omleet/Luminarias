@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         
         <link rel="icon" href="{{ asset('icon.png') }}" type="image/png">
-
+        
 
         
         <title>Luminárias Plataforma</title>

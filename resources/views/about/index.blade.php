@@ -30,7 +30,7 @@
                     <div class="space-y-6">
                         <!-- Project Description -->
                         <div class="p-4 bg-white dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                            <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Trabalho Laboratorial</h4>
+                            <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Projeto</h4>
                             <p class="text-gray-700 dark:text-gray-300">
                                 Este projeto foi desenvolvido para a disciplina de ESS (Engenharia de Sistemas e Serviços)
                                 do curso de Engenharia Informática.

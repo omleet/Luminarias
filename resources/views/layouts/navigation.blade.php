@@ -18,20 +18,22 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         <i class="fas fa-tachometer-alt mr-2"></i>{{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('controlos') }}">
+                    <x-nav-link :href="route('controlos')" :active="request()->routeIs('controlos')">
                         <i class="fas fa-sliders-h mr-2"></i>{{ __('Controles') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('relatorios') }}">
+                    <x-nav-link :href="route('relatorios')" :active="request()->routeIs('relatorios')">
                         <i class="fas fa-chart-line mr-2"></i>{{ __('Relatórios') }}
                     </x-nav-link>
 
                     @if(auth()->user()->admin == 1)
-                    <x-nav-link href="#">
+                    <x-nav-link :href="route('users_all')" :active="request()->routeIs('users_all')">
                         <i class="fas fa-user mr-2"></i>{{ __('Utilizadores') }}
                     </x-nav-link>
                     @endif
 
-                    <x-nav-link href="{{ route('about') }}">
+
+
+                    <x-nav-link :href="route('about')" :active="request()->routeIs('about')">
                         <i class="fas fa-info-circle mr-2"></i>{{ __('About') }}
                     </x-nav-link>
                 </div>
@@ -78,26 +80,28 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+        <div class="flex flex-col pt-3 pb-3 space-y-5">
+            <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 <i class="fas fa-tachometer-alt mr-2"></i>{{ __('Dashboard') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('controlos') }}">
+            </x-nav-link>
+            <x-nav-link :href="route('controlos')" :active="request()->routeIs('controlos')">
                 <i class="fas fa-sliders-h mr-2"></i>{{ __('Controles') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('relatorios') }}">
+            </x-nav-link>
+            <x-nav-link :href="route('relatorios')" :active="request()->routeIs('relatorios')">
                 <i class="fas fa-chart-line mr-2"></i>{{ __('Relatórios') }}
-            </x-responsive-nav-link>
+            </x-nav-link>
 
             @if(auth()->user()->admin == 1)
-            <x-responsive-nav-link href="#">
+            <x-nav-link :href="route('users_all')" :active="request()->routeIs('users_all')">
                 <i class="fas fa-user mr-2"></i>{{ __('Utilizadores') }}
-            </x-responsive-nav-link>
+            </x-nav-link>
             @endif
 
-            <x-responsive-nav-link href="{{ route('about') }}">
+
+
+            <x-nav-link :href="route('about')" :active="request()->routeIs('about')">
                 <i class="fas fa-info-circle mr-2"></i>{{ __('About') }}
-            </x-responsive-nav-link>
+            </x-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->
