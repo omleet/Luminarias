@@ -15,7 +15,7 @@
 </head>
 <body>
     <h1>{{ $title }}</h1>
-    <div class="date">Gerado em: {{ $date }}</div>
+    <div class="date">Ficheiro criado em: {{ $date }}</div>
     
     <table>
         <thead>
@@ -43,7 +43,7 @@
     </table>
     
     <div class="footer">
-        Sistema de Monitorização de Sensores - Gerado automaticamente
+        Sistema de Monitorização dos Sensores - PDF Gerado automaticamente
     </div>
 </body>
 </html>

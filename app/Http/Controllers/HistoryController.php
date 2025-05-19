@@ -328,14 +328,39 @@ class HistoryController extends Controller
         return Excel::download(new HistoryExport, 'historico-sensores.csv');
     }
 
-    public function exportPDF()
+    public function exportPDF(Request $request)
     {
-        $data = History::orderBy('created_at', 'desc')->get();
+        $validated = $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date'
+        ]);
+
+        $query = History::orderBy('created_at', 'desc');
+
+        if ($request->has('start_date')) {
+            $query->where('created_at', '>=', $validated['start_date']);
+        }
+
+        if ($request->has('end_date')) {
+            $query->where('created_at', '<=', $validated['end_date']);
+        }
+
+        // Limitar a 1000 registros no máximo
+        $data = $query->take(369)->get();
+
+        if ($data->count() === 369) {
+            // Adicionar aviso no PDF que há mais dados disponíveis
+            $warning = "Atenção: Mostrando apenas os primeiros 1000 registros. Use filtros mais específicos.";
+        }
 
         $pdf = PDF::loadView('exports.history-pdf', [
             'data' => $data,
-            'title' => 'Relatório Completo de Sensores',
-            'date' => now()->format('d/m/Y H:i')
+            'title' => 'Relatório de Sensores',
+            'date' => now()->format('d/m/Y H:i'),
+            'warning' => $warning ?? null,
+            'filter_period' => $request->has('start_date')
+                ? 'Período: ' . $validated['start_date'] . ' a ' . $validated['end_date']
+                : 'Todos os registros'
         ]);
 
         return $pdf->download('relatorio-sensores.pdf');

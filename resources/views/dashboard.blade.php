@@ -582,7 +582,7 @@
                     return '';
                 });
 
-                
+
 
                 // Verificar se todos os dados necessários existem
                 const hasValidData = historyData.every(item =>
@@ -642,30 +642,30 @@
 
     <!-- Lógica dos eventos recentes -->
     <script>
-    let currentPage = 1;
-    
-    // Função para carregar atividade recente
-    async function loadRecentActivity(page = 1) {
-        try {
-            currentPage = page;
-            const response = await fetch(`/recent-activity?page=${page}`);
-            const data = await response.json();
-            const activities = data.activities;
-            const pagination = data.pagination;
-            
-            // Atualiza a lista de atividades
-            const container = document.getElementById('recent-activity-container');
-            container.innerHTML = '';
-            
-            if (activities.length === 0) {
-                container.innerHTML = '<div class="px-6 py-4 text-gray-500">Nenhuma atividade recente</div>';
-                return;
-            }
-            
-            activities.forEach(activity => {
-                const activityElement = document.createElement('div');
-                activityElement.className = 'px-6 py-4';
-                activityElement.innerHTML = `
+        let currentPage = 1;
+
+        // Função para carregar atividade recente
+        async function loadRecentActivity(page = 1) {
+            try {
+                currentPage = page;
+                const response = await fetch(`/recent-activity?page=${page}`);
+                const data = await response.json();
+                const activities = data.activities;
+                const pagination = data.pagination;
+
+                // Atualiza a lista de atividades
+                const container = document.getElementById('recent-activity-container');
+                container.innerHTML = '';
+
+                if (activities.length === 0) {
+                    container.innerHTML = '<div class="px-6 py-4 text-gray-500">Nenhuma atividade recente</div>';
+                    return;
+                }
+
+                activities.forEach(activity => {
+                    const activityElement = document.createElement('div');
+                    activityElement.className = 'px-6 py-4';
+                    activityElement.innerHTML = `
                     <div class="flex items-center">
                         <div class="flex-shrink-0 bg-${activity.icon_color}-100 rounded-full p-2">
                             <i class="fas fa-${activity.icon} text-${activity.icon_color}-600"></i>
@@ -676,59 +676,59 @@
                         </div>
                     </div>
                 `;
-                container.appendChild(activityElement);
-            });
-            
-            // Atualiza os controles de paginação
-            updatePaginationControls(pagination);
-            
-        } catch (error) {
-            console.error('Error loading recent activity:', error);
-            document.getElementById('recent-activity-container').innerHTML = 
-                '<div class="px-6 py-4 text-red-500">Erro ao carregar atividades</div>';
+                    container.appendChild(activityElement);
+                });
+
+                // Atualiza os controles de paginação
+                updatePaginationControls(pagination);
+
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                document.getElementById('recent-activity-container').innerHTML =
+                    '<div class="px-6 py-4 text-red-500">Erro ao carregar atividades</div>';
+            }
         }
-    }
-    
-    // Função para atualizar os controles de paginação
-    function updatePaginationControls(pagination) {
-        const controls = document.getElementById('pagination-controls');
-        controls.innerHTML = '';
-        
-        // Botão Anterior
-        const prevButton = document.createElement('button');
-        prevButton.className = `px-3 py-1 rounded-md ${pagination.current_page === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
-        prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-        prevButton.disabled = pagination.current_page === 1;
-        prevButton.addEventListener('click', () => {
-            if (pagination.current_page > 1) {
-                loadRecentActivity(pagination.current_page - 1);
-            }
+
+        // Função para atualizar os controles de paginação
+        function updatePaginationControls(pagination) {
+            const controls = document.getElementById('pagination-controls');
+            controls.innerHTML = '';
+
+            // Botão Anterior
+            const prevButton = document.createElement('button');
+            prevButton.className = `px-3 py-1 rounded-md ${pagination.current_page === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
+            prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevButton.disabled = pagination.current_page === 1;
+            prevButton.addEventListener('click', () => {
+                if (pagination.current_page > 1) {
+                    loadRecentActivity(pagination.current_page - 1);
+                }
+            });
+            controls.appendChild(prevButton);
+
+            // Indicador de página
+            const pageIndicator = document.createElement('span');
+            pageIndicator.className = 'px-3 py-1 text-sm text-gray-700';
+            pageIndicator.textContent = `${pagination.current_page}/${pagination.last_page}`;
+            controls.appendChild(pageIndicator);
+
+            // Botão Próximo
+            const nextButton = document.createElement('button');
+            nextButton.className = `px-3 py-1 rounded-md ${pagination.current_page === pagination.last_page ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
+            nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextButton.disabled = pagination.current_page === pagination.last_page;
+            nextButton.addEventListener('click', () => {
+                if (pagination.current_page < pagination.last_page) {
+                    loadRecentActivity(pagination.current_page + 1);
+                }
+            });
+            controls.appendChild(nextButton);
+        }
+
+        // Carregar atividade recente quando a página carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecentActivity();
         });
-        controls.appendChild(prevButton);
-        
-        // Indicador de página
-        const pageIndicator = document.createElement('span');
-        pageIndicator.className = 'px-3 py-1 text-sm text-gray-700';
-        pageIndicator.textContent = `${pagination.current_page}/${pagination.last_page}`;
-        controls.appendChild(pageIndicator);
-        
-        // Botão Próximo
-        const nextButton = document.createElement('button');
-        nextButton.className = `px-3 py-1 rounded-md ${pagination.current_page === pagination.last_page ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
-        nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-        nextButton.disabled = pagination.current_page === pagination.last_page;
-        nextButton.addEventListener('click', () => {
-            if (pagination.current_page < pagination.last_page) {
-                loadRecentActivity(pagination.current_page + 1);
-            }
-        });
-        controls.appendChild(nextButton);
-    }
-    
-    // Carregar atividade recente quando a página carregar
-    document.addEventListener('DOMContentLoaded', () => {
-        loadRecentActivity();
-    });
-</script>
+    </script>
 
 </x-app-layout>
