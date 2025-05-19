@@ -124,16 +124,6 @@ return [
     ],
 
 
-    'providers' => [
-
-        Maatwebsite\Excel\ExcelServiceProvider::class,
-        Barryvdh\DomPDF\ServiceProvider::class,
-    ],
-
-    'aliases' => [
-
-        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
-        'PDF' => Barryvdh\DomPDF\Facade::class,
-    ],
+   
 
 ];
