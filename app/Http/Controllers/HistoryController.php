@@ -6,6 +6,10 @@ use App\Models\History;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\HistoryExport;
+use PDF;
+
 class HistoryController extends Controller
 {
     public function store(Request $request)
@@ -34,7 +38,7 @@ class HistoryController extends Controller
     AVG(humidity) as humidity,
     MIN(created_at) as min_time,
     MAX(created_at) as max_time
-", [$intervalSeconds])
+    ", [$intervalSeconds])
             ->groupBy('time_interval')
             ->orderBy('time_interval', 'desc')
             ->take(50)
@@ -314,5 +318,26 @@ class HistoryController extends Controller
         ]);
     }
 
-    
+    public function exportExcel()
+    {
+        return Excel::download(new HistoryExport, 'historico-sensores.xlsx');
+    }
+
+    public function exportCSV()
+    {
+        return Excel::download(new HistoryExport, 'historico-sensores.csv');
+    }
+
+    public function exportPDF()
+    {
+        $data = History::orderBy('created_at', 'desc')->get();
+
+        $pdf = PDF::loadView('exports.history-pdf', [
+            'data' => $data,
+            'title' => 'Relatório Completo de Sensores',
+            'date' => now()->format('d/m/Y H:i')
+        ]);
+
+        return $pdf->download('relatorio-sensores.pdf');
+    }
 }

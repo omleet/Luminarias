@@ -38,6 +38,8 @@
                     </button>
                 </div>
 
+                
+
                 <!-- Configurações de Sensores -->
                 <div class="bg-white shadow rounded-lg p-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
@@ -239,7 +241,7 @@
         </div>
     </div>
 
-    @push('scripts')
+    
     <script>
         // Controle do LED Principal
         const ledToggle = document.getElementById('main-led-toggle');
@@ -285,5 +287,5 @@
             alert('Configurações aplicadas com sucesso!');
         });
     </script>
-    @endpush
+    
 </x-app-layout>

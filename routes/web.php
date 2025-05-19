@@ -55,5 +55,8 @@ Route::post('/history', [HistoryController::class, 'store']);
 Route::get('/history', [HistoryController::class, 'index']);
 
 
+Route::get('/export/history/excel', [HistoryController::class, 'exportExcel'])->name('export.history.excel');
+Route::get('/export/history/csv', [HistoryController::class, 'exportCSV'])->name('export.history.csv');
+Route::get('/export/history/pdf', [HistoryController::class, 'exportPDF'])->name('export.history.pdf');
 
 require __DIR__ . '/auth.php';

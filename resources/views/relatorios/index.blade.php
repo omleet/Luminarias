@@ -237,8 +237,8 @@
                 <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50 pagination-container">
                     <!-- A paginação será carregada aqui -->
                 </div>
-                
-                
+
+
             </div>
 
             <!-- Exportar Dados -->
@@ -259,9 +259,9 @@
                                 <p class="text-sm text-gray-500">Dados formatados para planilhas</p>
                             </div>
                         </div>
-                        <button class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm flex items-center justify-center">
+                        <a href="{{ route('export.history.excel') }}" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm flex items-center justify-center">
                             <i class="fas fa-download mr-2"></i> Exportar para Excel
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Exportar para CSV -->
@@ -275,9 +275,9 @@
                                 <p class="text-sm text-gray-500">Dados brutos em formato CSV</p>
                             </div>
                         </div>
-                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm flex items-center justify-center">
+                        <a href="{{ route('export.history.csv') }}" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm flex items-center justify-center">
                             <i class="fas fa-download mr-2"></i> Exportar para CSV
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Exportar para PDF -->
@@ -291,9 +291,9 @@
                                 <p class="text-sm text-gray-500">Relatório completo em PDF</p>
                             </div>
                         </div>
-                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm flex items-center justify-center">
+                        <a href="{{ route('export.history.pdf') }}" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm flex items-center justify-center">
                             <i class="fas fa-download mr-2"></i> Gerar PDF
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
