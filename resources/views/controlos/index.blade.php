@@ -5,287 +5,450 @@
         </h2>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Grid de Controles -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <!-- Controle de LED Principal -->
-                <div class="bg-white shadow rounded-lg p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> LED Principal
-                    </h3>
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <span class="mr-3 text-sm font-medium text-gray-700">Estado:</span>
-                            <span id="main-led-status" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Desligado</span>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="main-led-toggle" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        </label>
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Intensidade</label>
-                        <input type="range" min="0" max="100" value="0" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" id="main-led-intensity">
-                        <div class="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>0%</span>
-                            <span id="main-led-intensity-value">0%</span>
-                            <span>100%</span>
-                        </div>
-                    </div>
-                    <button id="apply-led-settings" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-                        Aplicar Configurações
-                    </button>
-                </div>
-
-                
-
-                <!-- Configurações de Sensores -->
-                <div class="bg-white shadow rounded-lg p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-cog text-indigo-500 mr-2"></i> Configurações de Sensores
-                    </h3>
-                    
-                    <div class="space-y-4">
-                        <!-- Sensor de Movimento -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Sensor de Movimento</label>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-500">Sensibilidade</span>
-                                <input type="range" min="1" max="10" value="5" class="w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" id="motion-sensitivity">
-                                <span class="text-sm font-medium text-gray-700 w-8 text-center" id="motion-sensitivity-value">5</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Limiares de Luminosidade -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Limiar de Luminosidade</label>
-                            <div class="flex items-center space-x-4">
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Mínimo (lx)</label>
-                                    <input type="number" value="50" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                </div>
-                                <div class="flex-1">
-                                    <label class="block text-xs text-gray-500 mb-1">Máximo (lx)</label>
-                                    <input type="number" value="500" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Temporizador Automático -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Temporizador Automático</label>
-                            <div class="flex items-center space-x-2">
-                                <input type="time" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="18:00">
-                                <span class="text-gray-500">às</span>
-                                <input type="time" class="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="06:00">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-                        Salvar Configurações
-                    </button>
-                </div>
-            </div>
-
-            <!-- Grupos de Luminárias -->
-            <div class="bg-white shadow rounded-lg p-6 mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-layer-group text-green-500 mr-2"></i> Grupos de Luminárias
-                </h3>
-                
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grupo</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Intensidade</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                            <i class="fas fa-lightbulb text-indigo-600"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Exemplo 1</div>
-                                            <div class="text-sm text-gray-500">3 luminárias</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Ligado</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 75%"></div>
-                                    </div>
-                                    <span class="text-xs text-gray-500 mt-1">75%</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-edit"></i></button>
-                                    <button class="text-red-600 hover:text-red-900"><i class="fas fa-trash-alt"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                            <i class="fas fa-lightbulb text-indigo-600"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Exemplo 2</div>
-                                            <div class="text-sm text-gray-500">5 luminárias</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Desligado</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
-                                    </div>
-                                    <span class="text-xs text-gray-500 mt-1">0%</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-edit"></i></button>
-                                    <button class="text-red-600 hover:text-red-900"><i class="fas fa-trash-alt"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                                            <i class="fas fa-lightbulb text-indigo-600"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">Exemplo 3</div>
-                                            <div class="text-sm text-gray-500">4 luminárias</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Ligado</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 30%"></div>
-                                    </div>
-                                    <span class="text-xs text-gray-500 mt-1">30%</span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <button class="text-indigo-600 hover:text-indigo-900 mr-3"><i class="fas fa-edit"></i></button>
-                                    <button class="text-red-600 hover:text-red-900"><i class="fas fa-trash-alt"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="mt-4 flex justify-end">
-                    <button class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        <i class="fas fa-plus mr-2"></i> Adicionar Grupo
-                    </button>
-                </div>
-            </div>
-
-            <!-- Programação Automática -->
+    <div class="py-6 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Botão de Toggle e Status -->
             <div class="bg-white shadow rounded-lg p-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-clock text-purple-500 mr-2"></i> Programação Automática
-                </h3>
-                
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div class="flex items-center">
-                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" checked>
-                            <span class="ml-3 text-sm font-medium text-gray-700">Ativar modo noturno automático</span>
+                <div class="flex flex-col items-center space-y-4">
+                    <button id="toggle-controls"
+                        class="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-8 rounded-md transition duration-200 shadow-md"
+                        onclick="toggleAutoControl()">
+                        Desligar controlo automático
+                    </button>
+                    <div id="sensor-status-text" class="text-center text-gray-600 italic">
+                        Os sensores estão a operar de forma automática, de acordo com a programação definida no Arduino.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de Controles (inicialmente escondido) -->
+            <div id="controls-container" class="hidden space-y-6">
+                <!-- Grid de Controles -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Controle de LED Principal -->
+                    <div class="bg-white shadow rounded-lg p-6 flex flex-col">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-lightbulb text-yellow-500 mr-2"></i> LED Principal
+                        </h3>
+                        <div class="flex-grow space-y-4">
+                            <!-- Estado do LED -->
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-3 text-sm font-medium text-gray-700">Estado:</span>
+                                    <span id="led-status" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">--</span>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button id="led-on-btn" class="px-3 py-1 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm">
+                                        Ligar
+                                    </button>
+                                    <button id="led-off-btn" class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm">
+                                        Desligar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Configuração de Sensibilidade -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sensibilidade do Sensor</label>
+                                <div class="flex items-center justify-between">
+                                    <input type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mr-4" id="sensitivity-range">
+                                    <span class="text-sm font-medium text-gray-700 w-8 text-center" id="sensitivity-value">5</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <input type="time" class="px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" value="18:30">
-                            <span class="text-sm text-gray-500">às</span>
-                            <input type="time" class="px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" value="06:00">
+
+                        <!-- Status e Botão de Aplicar -->
+                        <div class="mt-4">
+                            <div id="led-control-status" class="text-sm text-gray-600 mb-3 italic"></div>
+                            <button id="apply-settings" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 shadow-md">
+                                Aplicar Configurações
+                            </button>
                         </div>
                     </div>
-                    
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div class="flex items-center">
-                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                            <span class="ml-3 text-sm font-medium text-gray-700">Ligar quando movimento detectado</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm text-gray-500">Duração:</span>
-                            <input type="number" min="1" max="60" value="5" class="w-16 px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            <span class="text-sm text-gray-500">minutos</span>
+
+                    <!-- Controle de Sensor de Movimento -->
+                    <div class="bg-white shadow rounded-lg p-6 flex flex-col">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-running text-blue-500 mr-2"></i> Sensor de Movimento
+                        </h3>
+                        <div class="flex-grow space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-3 text-sm font-medium text-gray-700">Estado:</span>
+                                    <span id="motion-sensor-status" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Desligado</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="motion-sensor-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sensibilidade</label>
+                                <div class="flex items-center justify-between">
+                                    <input type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer mr-4" id="motion-sensitivity">
+                                    <span class="text-sm font-medium text-gray-700 w-8 text-center" id="motion-sensitivity-value">5</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <div class="flex items-center">
-                            <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" checked>
-                            <span class="ml-3 text-sm font-medium text-gray-700">Ajustar intensidade pela luminosidade</span>
+
+                    <!-- Controle de Sensor de Temperatura -->
+                    <div class="bg-white shadow rounded-lg p-6 flex flex-col">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-temperature-high text-red-500 mr-2"></i> Sensor de Temperatura
+                        </h3>
+                        <div class="flex-grow space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-3 text-sm font-medium text-gray-700">Estado:</span>
+                                    <span id="temperature-sensor-status" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Desligado</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="temperature-sensor-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Limite (°C)</label>
+                                <input type="number" id="temperature-threshold" value="25" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controle de Sensor de Luminosidade -->
+                    <div class="bg-white shadow rounded-lg p-6 flex flex-col">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-sun text-yellow-400 mr-2"></i> Sensor de Luminosidade
+                        </h3>
+                        <div class="flex-grow space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-3 text-sm font-medium text-gray-700">Estado:</span>
+                                    <span id="light-sensor-status" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Desligado</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="light-sensor-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Limite (Lux)</label>
+                                <input type="number" id="light-threshold" value="300" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controle de Sensor de Humidade -->
+                    <div class="bg-white shadow rounded-lg p-6 flex flex-col">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-tint text-blue-400 mr-2"></i> Sensor de Humidade
+                        </h3>
+                        <div class="flex-grow space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-3 text-sm font-medium text-gray-700">Estado:</span>
+                                    <span id="humidity-sensor-status" class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Desligado</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="humidity-sensor-toggle" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Limite (%)</label>
+                                <input type="number" id="humidity-threshold" value="60" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <button class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
-                    Salvar Programação
-                </button>
+
+                <!-- Programação Automática -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-clock text-purple-500 mr-2"></i> Programação Automática
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                            <div class="flex items-center mb-2 sm:mb-0">
+                                <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" checked>
+                                <span class="ml-3 text-sm font-medium text-gray-700">Ativar modo noturno automático</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <input type="time" class="px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" value="18:30">
+                                <span class="text-sm text-gray-500">às</span>
+                                <input type="time" class="px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" value="06:00">
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                            <div class="flex items-center mb-2 sm:mb-0">
+                                <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                <span class="ml-3 text-sm font-medium text-gray-700">Ligar quando movimento detectado</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm text-gray-500">Duração:</span>
+                                <input type="number" min="1" max="60" value="5" class="w-16 px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                                <span class="text-sm text-gray-500">minutos</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition">
+                            <div class="flex items-center">
+                                <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" checked>
+                                <span class="ml-3 text-sm font-medium text-gray-700">Ajustar intensidade pela luminosidade</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 shadow-md">
+                        Salvar Programação
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
-    
     <script>
+        // [O código JavaScript permanece exatamente o mesmo]
+        // Função para alternar o controle automático
+        function toggleAutoControl() {
+            const button = document.getElementById('toggle-controls');
+            const statusText = document.getElementById('sensor-status-text');
+            const controlsContainer = document.getElementById('controls-container');
+
+            if (button.textContent.trim() === 'Desligar controlo automático') {
+                button.textContent = 'Ligar controlo automático';
+                button.classList.remove('bg-red-600', 'hover:bg-red-700');
+                button.classList.add('bg-green-600', 'hover:bg-green-700');
+                statusText.textContent = 'Ao clicar os sensores podem ser controlados automáticamente.';
+                controlsContainer.classList.remove('hidden');
+                localStorage.setItem('autoControlEnabled', 'false');
+            } else {
+                button.textContent = 'Desligar controlo automático';
+                button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                button.classList.add('bg-red-600', 'hover:bg-red-700');
+                statusText.textContent = 'Os sensores estão a operar de forma automática, de acordo com a programação definida no Arduino.';
+                controlsContainer.classList.add('hidden');
+                localStorage.setItem('autoControlEnabled', 'true');
+            }
+        }
+
+        // Verificar o estado salvo ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            const autoControlEnabled = localStorage.getItem('autoControlEnabled');
+            const button = document.getElementById('toggle-controls');
+            const statusText = document.getElementById('sensor-status-text');
+            const controlsContainer = document.getElementById('controls-container');
+
+            if (autoControlEnabled === 'false') {
+                button.textContent = 'Ligar controlo automático';
+                button.classList.remove('bg-red-600', 'hover:bg-red-700');
+                button.classList.add('bg-green-600', 'hover:bg-green-700');
+                statusText.textContent = 'Ao clicar os sensores podem ser controlados automáticamente.';
+                controlsContainer.classList.remove('hidden');
+            } else {
+                // Estado padrão (automático ativado)
+                button.textContent = 'Desligar controlo automático';
+                button.classList.remove('bg-green-600', 'hover:bg-green-700');
+                button.classList.add('bg-red-600', 'hover:bg-red-700');
+                statusText.textContent = 'Os sensores estão a operar de forma automática, de acordo com a programação definida no Arduino.';
+                controlsContainer.classList.add('hidden');
+            }
+        });
+
         // Controle do LED Principal
-        const ledToggle = document.getElementById('main-led-toggle');
-        const ledIntensity = document.getElementById('main-led-intensity');
-        const ledIntensityValue = document.getElementById('main-led-intensity-value');
-        const ledStatus = document.getElementById('main-led-status');
-        
-        ledToggle.addEventListener('change', function() {
-            if(this.checked) {
+        document.getElementById('main-led-toggle').addEventListener('change', function() {
+            const ledStatus = document.getElementById('main-led-status');
+            const ledIntensity = document.getElementById('main-led-intensity');
+
+            if (this.checked) {
                 ledStatus.textContent = 'Ligado';
-                ledStatus.classList.remove('bg-gray-100', 'text-gray-800');
-                ledStatus.classList.add('bg-green-100', 'text-green-800');
+                ledStatus.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
                 ledIntensity.disabled = false;
             } else {
                 ledStatus.textContent = 'Desligado';
-                ledStatus.classList.remove('bg-green-100', 'text-green-800');
-                ledStatus.classList.add('bg-gray-100', 'text-gray-800');
+                ledStatus.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
                 ledIntensity.disabled = true;
             }
         });
-        
-        ledIntensity.addEventListener('input', function() {
-            ledIntensityValue.textContent = this.value + '%';
+
+        // Controle do Sensor de Movimento
+        document.getElementById('motion-sensor-toggle').addEventListener('change', function() {
+            const status = document.getElementById('motion-sensor-status');
+            const control = document.getElementById('motion-sensitivity');
+
+            if (this.checked) {
+                status.textContent = 'Ativo';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+                control.disabled = false;
+            } else {
+                status.textContent = 'Desligado';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+                control.disabled = true;
+            }
         });
-        
+
+        // Controle do Sensor de Temperatura
+        document.getElementById('temperature-sensor-toggle').addEventListener('change', function() {
+            const status = document.getElementById('temperature-sensor-status');
+            const control = document.getElementById('temperature-threshold');
+
+            if (this.checked) {
+                status.textContent = 'Ativo';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+                control.disabled = false;
+            } else {
+                status.textContent = 'Desligado';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+                control.disabled = true;
+            }
+        });
+
+        // Controle do Sensor de Luminosidade
+        document.getElementById('light-sensor-toggle').addEventListener('change', function() {
+            const status = document.getElementById('light-sensor-status');
+            const control = document.getElementById('light-threshold');
+
+            if (this.checked) {
+                status.textContent = 'Ativo';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+                control.disabled = false;
+            } else {
+                status.textContent = 'Desligado';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+                control.disabled = true;
+            }
+        });
+
+        // Controle do Sensor de Humidade
+        document.getElementById('humidity-sensor-toggle').addEventListener('change', function() {
+            const status = document.getElementById('humidity-sensor-status');
+            const control = document.getElementById('humidity-threshold');
+
+            if (this.checked) {
+                status.textContent = 'Ativo';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+                control.disabled = false;
+            } else {
+                status.textContent = 'Desligado';
+                status.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+                control.disabled = true;
+            }
+        });
+
+        document.getElementById('main-led-intensity').addEventListener('input', function() {
+            document.getElementById('main-led-intensity-value').textContent = this.value + '%';
+        });
+
         // Configuração de sensibilidade do sensor de movimento
-        const motionSensitivity = document.getElementById('motion-sensitivity');
-        const motionSensitivityValue = document.getElementById('motion-sensitivity-value');
-        
-        motionSensitivity.addEventListener('input', function() {
-            motionSensitivityValue.textContent = this.value;
+        document.getElementById('motion-sensitivity').addEventListener('input', function() {
+            document.getElementById('motion-sensitivity-value').textContent = this.value;
         });
-        
+
         // Enviar configurações para o ESP
         document.getElementById('apply-led-settings').addEventListener('click', function() {
-            // Aqui você implementaria a chamada para a API que controla o ESP
-            const isLedOn = ledToggle.checked;
-            const intensity = ledIntensity.value;
-            
-            console.log('Configurações enviadas:', { isLedOn, intensity });
-            // Exemplo: fetch('/api/led-control', { method: 'POST', body: JSON.stringify({ isLedOn, intensity }) });
-            
+            const isLedOn = document.getElementById('main-led-toggle').checked;
+            const intensity = document.getElementById('main-led-intensity').value;
+
+            console.log('Configurações enviadas:', {
+                isLedOn,
+                intensity
+            });
             alert('Configurações aplicadas com sucesso!');
         });
     </script>
-    
+
+
+    <script>
+        // Script para o LED
+        const ESP_IP = '192.168.1.100';
+
+        // Função para controlar o LED
+        async function controlLed(state) {
+            const statusMessage = document.getElementById('led-control-status');
+            statusMessage.textContent = `Enviando comando para ${state === 'on' ? 'LIGAR' : 'DESLIGAR'}...`;
+
+            try {
+                const response = await fetch(`http://${ESP_IP}/led/${state}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) throw new Error('Erro na requisição');
+
+                const newState = await fetchLedState();
+                updateLedDisplay(newState);
+
+                statusMessage.textContent = `LED ${state === 'on' ? 'LIGADO' : 'DESLIGADO'} (${new Date().toLocaleTimeString()})`;
+                statusMessage.className = "text-sm text-green-600 mb-3 italic";
+            } catch (error) {
+                console.error('Erro ao controlar o LED:', error);
+                statusMessage.textContent = 'Erro ao enviar comando.';
+                statusMessage.className = "text-sm text-red-600 mb-3 italic";
+            }
+        }
+
+        // Função para obter o estado atual do LED
+        async function fetchLedState() {
+            try {
+                const response = await fetch(`http://${ESP_IP}/status`);
+                if (!response.ok) throw new Error('Erro na requisição');
+                const data = await response.json();
+                return data.led; // "ON" ou "OFF"
+            } catch (error) {
+                console.error('Erro ao obter estado do LED:', error);
+                return 'OFF';
+            }
+        }
+
+        // Atualizar display do LED
+        function updateLedDisplay(status) {
+            const ledStatusElement = document.getElementById('led-status');
+            if (status === 'ON') {
+                ledStatusElement.textContent = 'Ligado';
+                ledStatusElement.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+            } else {
+                ledStatusElement.textContent = 'Desligado';
+                ledStatusElement.className = 'px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Controlo direto do LED (botões ON/OFF)
+        document.getElementById('led-on-btn').addEventListener('click', () => controlLed('on'));
+        document.getElementById('led-off-btn').addEventListener('click', () => controlLed('off'));
+
+        // Slider da sensibilidade
+        document.getElementById('sensitivity-range').addEventListener('input', function() {
+            document.getElementById('sensitivity-value').textContent = this.value;
+        });
+
+        // Aplicar configurações (sensibilidade)
+        document.getElementById('apply-settings').addEventListener('click', async function() {
+            const sensitivity = document.getElementById('sensitivity-range').value;
+            const statusMessage = document.getElementById('led-control-status');
+
+            statusMessage.textContent = "Aplicando configurações...";
+
+            try {
+                // Enviar valor da sensibilidade para o ESP
+                const response = await fetch(`http://${ESP_IP}/sensitivity/${sensitivity}`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) throw new Error("Erro ao enviar sensibilidade");
+
+                statusMessage.textContent = "Configurações aplicadas com sucesso!";
+                statusMessage.className = "text-sm text-green-600 mb-3 italic";
+            } catch (error) {
+                console.error('Erro ao aplicar configurações:', error);
+                statusMessage.textContent = "Erro ao aplicar configurações";
+                statusMessage.className = "text-sm text-red-600 mb-3 italic";
+            }
+        });
+
+        // Ao carregar a página, atualizar o estado do LED
+        document.addEventListener('DOMContentLoaded', async function() {
+            const ledState = await fetchLedState();
+            updateLedDisplay(ledState);
+        });
+    </script>
+
 </x-app-layout>

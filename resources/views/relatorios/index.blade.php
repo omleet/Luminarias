@@ -256,7 +256,7 @@
                             </div>
                             <div class="ml-4">
                                 <h4 class="text-sm font-medium text-gray-900">Excel</h4>
-                                <p class="text-sm text-gray-500">Dados formatados para planilhas</p>
+                                <p class="text-sm text-gray-500">Dados formatados para Excel</p>
                             </div>
                         </div>
                         <a href="{{ route('export.history.excel') }}" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 text-sm flex items-center justify-center">

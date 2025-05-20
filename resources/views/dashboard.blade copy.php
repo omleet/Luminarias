@@ -165,15 +165,12 @@
 
 
             <!-- Controls Section -->
-           <!-- LIGAR/DESLIGAR LED MANUALMENTE
             <div class="bg-white shadow rounded-lg p-6 mb-8">
                 <h3 class="text-lg font-medium text-gray-900 mb-6 flex items-center">
                     <i class="fas fa-sliders-h text-indigo-500 mr-2"></i> Controles
                 </h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    --> 
-                <!-- LED Control -->
-                 <!--
+                    <!-- LED Control -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Controle da Luminária</label>
                         <div class="flex items-center">
@@ -186,9 +183,8 @@
                         </div>
                         <div id="led-control-status" class="mt-2 text-sm text-gray-600"></div>
                     </div>
-                    -->
+
                     <!-- Motion Sensor Settings -->
-                     <!--
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Configuração de Sensibilidade</label>
                         <div class="flex items-center">
@@ -198,7 +194,6 @@
                     </div>
                 </div>
             </div>
-            -->
 
             <!-- Recent Activity -->
             <div class="bg-white shadow rounded-lg overflow-hidden">
