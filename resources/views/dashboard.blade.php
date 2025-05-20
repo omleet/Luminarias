@@ -163,43 +163,6 @@
                 </div>
             </div>
 
-
-            <!-- Controls Section -->
-           <!-- LIGAR/DESLIGAR LED MANUALMENTE
-            <div class="bg-white shadow rounded-lg p-6 mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-6 flex items-center">
-                    <i class="fas fa-sliders-h text-indigo-500 mr-2"></i> Controles
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    --> 
-                <!-- LED Control -->
-                 <!--
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Controle da Luminária</label>
-                        <div class="flex items-center">
-                            <button id="led-on-btn" class="px-4 py-2 bg-green-600 text-white rounded-l-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                Ligar
-                            </button>
-                            <button id="led-off-btn" class="px-4 py-2 bg-red-600 text-white rounded-r-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
-                                Desligar
-                            </button>
-                        </div>
-                        <div id="led-control-status" class="mt-2 text-sm text-gray-600"></div>
-                    </div>
-                    -->
-                    <!-- Motion Sensor Settings -->
-                     <!--
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Configuração de Sensibilidade</label>
-                        <div class="flex items-center">
-                            <input type="range" min="1" max="10" value="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" id="sensitivity-range">
-                            <span class="ml-3 text-sm text-gray-600" id="sensitivity-value">5</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            -->
-
             <!-- Recent Activity -->
             <div class="bg-white shadow rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -225,14 +188,14 @@
     <!-- Lógica dos sensores -->
     <script>
         // Configuration
-        const ESP_IP = '192.168.1.100'; // VERIFY THIS IS YOUR ESP's IP
+        const ESP_IP = '192.168.178.140'; // VERIFY THIS IS YOUR ESP's IP
         const UPDATE_INTERVAL = 2000; // 2 seconds
 
         // DOM Elements
         const ledStatusElement = document.getElementById('led-status');
         const ledOnElement = document.getElementById('led-on');
         const ledOffElement = document.getElementById('led-off');
-        const statusMessage = document.getElementById('led-control-status');
+        
         const lightValueElement = document.getElementById('light-value');
         const temperatureElement = document.getElementById('temperature-value');
         const humidityElement = document.getElementById('humidity-value');
@@ -357,8 +320,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Button listeners
-            document.getElementById('led-on-btn').addEventListener('click', () => controlLed('on'));
-            document.getElementById('led-off-btn').addEventListener('click', () => controlLed('off'));
+            
 
             // Clear initial displays
             updateLedDisplay('OFF');
@@ -587,7 +549,7 @@
                     return '';
                 });
 
-
+                
 
                 // Verificar se todos os dados necessários existem
                 const hasValidData = historyData.every(item =>
@@ -647,30 +609,30 @@
 
     <!-- Lógica dos eventos recentes -->
     <script>
-        let currentPage = 1;
-
-        // Função para carregar atividade recente
-        async function loadRecentActivity(page = 1) {
-            try {
-                currentPage = page;
-                const response = await fetch(`/recent-activity?page=${page}`);
-                const data = await response.json();
-                const activities = data.activities;
-                const pagination = data.pagination;
-
-                // Atualiza a lista de atividades
-                const container = document.getElementById('recent-activity-container');
-                container.innerHTML = '';
-
-                if (activities.length === 0) {
-                    container.innerHTML = '<div class="px-6 py-4 text-gray-500">Nenhuma atividade recente</div>';
-                    return;
-                }
-
-                activities.forEach(activity => {
-                    const activityElement = document.createElement('div');
-                    activityElement.className = 'px-6 py-4';
-                    activityElement.innerHTML = `
+    let currentPage = 1;
+    
+    // Função para carregar atividade recente
+    async function loadRecentActivity(page = 1) {
+        try {
+            currentPage = page;
+            const response = await fetch(`/recent-activity?page=${page}`);
+            const data = await response.json();
+            const activities = data.activities;
+            const pagination = data.pagination;
+            
+            // Atualiza a lista de atividades
+            const container = document.getElementById('recent-activity-container');
+            container.innerHTML = '';
+            
+            if (activities.length === 0) {
+                container.innerHTML = '<div class="px-6 py-4 text-gray-500">Nenhuma atividade recente</div>';
+                return;
+            }
+            
+            activities.forEach(activity => {
+                const activityElement = document.createElement('div');
+                activityElement.className = 'px-6 py-4';
+                activityElement.innerHTML = `
                     <div class="flex items-center">
                         <div class="flex-shrink-0 bg-${activity.icon_color}-100 rounded-full p-2">
                             <i class="fas fa-${activity.icon} text-${activity.icon_color}-600"></i>
@@ -681,59 +643,59 @@
                         </div>
                     </div>
                 `;
-                    container.appendChild(activityElement);
-                });
-
-                // Atualiza os controles de paginação
-                updatePaginationControls(pagination);
-
-            } catch (error) {
-                console.error('Error loading recent activity:', error);
-                document.getElementById('recent-activity-container').innerHTML =
-                    '<div class="px-6 py-4 text-red-500">Erro ao carregar atividades</div>';
+                container.appendChild(activityElement);
+            });
+            
+            // Atualiza os controles de paginação
+            updatePaginationControls(pagination);
+            
+        } catch (error) {
+            console.error('Error loading recent activity:', error);
+            document.getElementById('recent-activity-container').innerHTML = 
+                '<div class="px-6 py-4 text-red-500">Erro ao carregar atividades</div>';
+        }
+    }
+    
+    // Função para atualizar os controles de paginação
+    function updatePaginationControls(pagination) {
+        const controls = document.getElementById('pagination-controls');
+        controls.innerHTML = '';
+        
+        // Botão Anterior
+        const prevButton = document.createElement('button');
+        prevButton.className = `px-3 py-1 rounded-md ${pagination.current_page === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
+        prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevButton.disabled = pagination.current_page === 1;
+        prevButton.addEventListener('click', () => {
+            if (pagination.current_page > 1) {
+                loadRecentActivity(pagination.current_page - 1);
             }
-        }
-
-        // Função para atualizar os controles de paginação
-        function updatePaginationControls(pagination) {
-            const controls = document.getElementById('pagination-controls');
-            controls.innerHTML = '';
-
-            // Botão Anterior
-            const prevButton = document.createElement('button');
-            prevButton.className = `px-3 py-1 rounded-md ${pagination.current_page === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
-            prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-            prevButton.disabled = pagination.current_page === 1;
-            prevButton.addEventListener('click', () => {
-                if (pagination.current_page > 1) {
-                    loadRecentActivity(pagination.current_page - 1);
-                }
-            });
-            controls.appendChild(prevButton);
-
-            // Indicador de página
-            const pageIndicator = document.createElement('span');
-            pageIndicator.className = 'px-3 py-1 text-sm text-gray-700';
-            pageIndicator.textContent = `${pagination.current_page}/${pagination.last_page}`;
-            controls.appendChild(pageIndicator);
-
-            // Botão Próximo
-            const nextButton = document.createElement('button');
-            nextButton.className = `px-3 py-1 rounded-md ${pagination.current_page === pagination.last_page ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
-            nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-            nextButton.disabled = pagination.current_page === pagination.last_page;
-            nextButton.addEventListener('click', () => {
-                if (pagination.current_page < pagination.last_page) {
-                    loadRecentActivity(pagination.current_page + 1);
-                }
-            });
-            controls.appendChild(nextButton);
-        }
-
-        // Carregar atividade recente quando a página carregar
-        document.addEventListener('DOMContentLoaded', () => {
-            loadRecentActivity();
         });
-    </script>
+        controls.appendChild(prevButton);
+        
+        // Indicador de página
+        const pageIndicator = document.createElement('span');
+        pageIndicator.className = 'px-3 py-1 text-sm text-gray-700';
+        pageIndicator.textContent = `${pagination.current_page}/${pagination.last_page}`;
+        controls.appendChild(pageIndicator);
+        
+        // Botão Próximo
+        const nextButton = document.createElement('button');
+        nextButton.className = `px-3 py-1 rounded-md ${pagination.current_page === pagination.last_page ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'}`;
+        nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextButton.disabled = pagination.current_page === pagination.last_page;
+        nextButton.addEventListener('click', () => {
+            if (pagination.current_page < pagination.last_page) {
+                loadRecentActivity(pagination.current_page + 1);
+            }
+        });
+        controls.appendChild(nextButton);
+    }
+    
+    // Carregar atividade recente quando a página carregar
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRecentActivity();
+    });
+</script>
 
 </x-app-layout>

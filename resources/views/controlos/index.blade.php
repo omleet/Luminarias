@@ -207,8 +207,8 @@
         </div>
     </div>
 
+    
     <script>
-        // [O código JavaScript permanece exatamente o mesmo]
         // Função para alternar o controle automático
         function toggleAutoControl() {
             const button = document.getElementById('toggle-controls');
@@ -360,7 +360,7 @@
 
     <script>
         // Script para o LED
-        const ESP_IP = '192.168.1.100';
+        const ESP_IP = '192.168.178.140';
 
         // Função para controlar o LED
         async function controlLed(state) {
