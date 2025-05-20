@@ -163,6 +163,8 @@
                 </div>
             </div>
 
+            
+
             <!-- Recent Activity -->
             <div class="bg-white shadow rounded-lg overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -195,7 +197,7 @@
         const ledStatusElement = document.getElementById('led-status');
         const ledOnElement = document.getElementById('led-on');
         const ledOffElement = document.getElementById('led-off');
-
+        
         const lightValueElement = document.getElementById('light-value');
         const temperatureElement = document.getElementById('temperature-value');
         const humidityElement = document.getElementById('humidity-value');
@@ -247,7 +249,7 @@
                 const data = await fetchJson('/status');
                 return data.led; // "ON" or "OFF"
             } catch (e) {
-                statusMessage.textContent = 'Erro ao obter status';
+                
                 throw e;
             }
         }
@@ -283,13 +285,13 @@
 
         // Control LED
         async function controlLed(state) {
-            statusMessage.textContent = `Enviando comando para ${state==='on'?'LIGAR':'DESLIGAR'}...`;
+       
             await fetch(`http://${ESP_IP}/led/${state}`, {
                 method: 'POST'
             });
             const newState = await fetchLedState();
             updateLedDisplay(newState);
-            statusMessage.textContent = `LED ${state==='on'?'LIGADO':'DESLIGADO'} (${new Date().toLocaleTimeString()})`;
+            
         }
 
         // Upload data to DB
@@ -654,10 +656,7 @@
                 document.getElementById('recent-activity-container').innerHTML =
                     '<div class="px-6 py-4 text-red-500">Erro ao carregar atividades</div>';
             }
-            // Atualiza automaticamente a cada 10 segundos
-            setInterval(() => {
-                loadRecentActivity(currentPage); // Usa a página atual
-            }, 20000);
+
         }
 
 
