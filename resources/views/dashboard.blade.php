@@ -657,7 +657,7 @@
             // Atualiza automaticamente a cada 10 segundos
             setInterval(() => {
                 loadRecentActivity(currentPage); // Usa a página atual
-            }, 10000);
+            }, 20000);
         }
 
 

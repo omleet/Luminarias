@@ -67,17 +67,13 @@ class HistoryController extends Controller
         $perPage = 10; // Itens por página
         $page = $request->get('page', 1); // Página atual, padrão é 1
 
-        // Busca os últimos 100 eventos ordenados por data
-        $query = History::orderBy('created_at', 'desc')->take(100);
+        // Busca os últimos 100 registos (em memória, como coleção)
+        $histories = History::orderBy('created_at', 'desc')->take(100)->get();
 
-        // Pagina os resultados (10 por página)
-        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
-
-        // Transforma os itens
-        $activities = $paginator->getCollection()->map(function ($item) {
+        // Transforma os itens em eventos
+        $allEvents = $histories->flatMap(function ($item) {
             $events = [];
 
-            // Evento de LED
             if ($item->led_state === 'ON') {
                 $events[] = [
                     'icon' => 'lightbulb',
@@ -87,18 +83,16 @@ class HistoryController extends Controller
                         ($item->motion ? 'Detecção de movimento' : 'Luminosidade baixa'),
                     'time' => $item->created_at->diffForHumans()
                 ];
-            } else if ($item->led_state === 'OFF') {
+            } elseif ($item->led_state === 'OFF') {
                 $events[] = [
                     'icon' => 'lightbulb',
                     'icon_color' => 'gray',
                     'title' => 'LED desligado',
-                    'description' => date('H:i', strtotime($item->created_at)) . ' - ' .
-                        'Luminosidade adequada',
+                    'description' => date('H:i', strtotime($item->created_at)) . ' - Luminosidade adequada',
                     'time' => $item->created_at->diffForHumans()
                 ];
             }
 
-            // Evento de movimento
             if ($item->motion) {
                 $events[] = [
                     'icon' => 'walking',
@@ -109,7 +103,6 @@ class HistoryController extends Controller
                 ];
             }
 
-            // Evento de luminosidade
             if ($item->light < 150) {
                 $events[] = [
                     'icon' => 'sun',
@@ -120,7 +113,6 @@ class HistoryController extends Controller
                 ];
             }
 
-            // Evento de temperatura
             if ($item->temperature > 25) {
                 $events[] = [
                     'icon' => 'thermometer-half',
@@ -131,7 +123,6 @@ class HistoryController extends Controller
                 ];
             }
 
-            // Evento de humidade
             if ($item->humidity > 80) {
                 $events[] = [
                     'icon' => 'tint',
@@ -143,24 +134,25 @@ class HistoryController extends Controller
             }
 
             return $events;
-        })
-            ->flatten(1)
-            ->take(10) // Garante no máximo 10 eventos por página
-            ->values()
-            ->all();
+        });
+
+        // Paginação manual da coleção
+        $total = $allEvents->count();
+        $paginated = $allEvents->forPage($page, $perPage)->values();
 
         return response()->json([
-            'activities' => $activities,
+            'activities' => $paginated,
             'pagination' => [
-                'total' => $paginator->total(),
+                'total' => $total,
                 'per_page' => $perPage,
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'next_page_url' => $paginator->nextPageUrl(),
-                'prev_page_url' => $paginator->previousPageUrl()
+                'current_page' => (int) $page,
+                'last_page' => ceil($total / $perPage),
+                'next_page_url' => $page < ceil($total / $perPage) ? url()->current() . '?page=' . ($page + 1) : null,
+                'prev_page_url' => $page > 1 ? url()->current() . '?page=' . ($page - 1) : null
             ]
         ]);
     }
+
 
     public function reportData(Request $request)
     {
