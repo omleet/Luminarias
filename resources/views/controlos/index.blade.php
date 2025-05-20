@@ -161,48 +161,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Programação Automática -->
-                <div class="bg-white shadow rounded-lg p-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-clock text-purple-500 mr-2"></i> Programação Automática
-                    </h3>
-                    <div class="space-y-3">
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition">
-                            <div class="flex items-center mb-2 sm:mb-0">
-                                <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" checked>
-                                <span class="ml-3 text-sm font-medium text-gray-700">Ativar modo noturno automático</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <input type="time" class="px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" value="18:30">
-                                <span class="text-sm text-gray-500">às</span>
-                                <input type="time" class="px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" value="06:00">
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition">
-                            <div class="flex items-center mb-2 sm:mb-0">
-                                <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                                <span class="ml-3 text-sm font-medium text-gray-700">Ligar quando movimento detectado</span>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-sm text-gray-500">Duração:</span>
-                                <input type="number" min="1" max="60" value="5" class="w-16 px-2 py-1 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                                <span class="text-sm text-gray-500">minutos</span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-md hover:bg-gray-100 transition">
-                            <div class="flex items-center">
-                                <input type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" checked>
-                                <span class="ml-3 text-sm font-medium text-gray-700">Ajustar intensidade pela luminosidade</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 shadow-md">
-                        Salvar Programação
-                    </button>
-                </div>
             </div>
         </div>
     </div>
