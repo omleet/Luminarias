@@ -11,6 +11,14 @@ export default defineConfig({
         }),
         vue(),
     ],
+    /*server: {
+        host: '0.0.0.0', // Accept connections from the network
+        port: 5173,
+        hmr: {
+          host: '192.168.178.233', // <-- Your laptop's IP address
+        },
+      },
+      */
     resolve: {
         alias: {
             vue: "vue/dist/vue.esm-bundler.js",
