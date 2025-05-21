@@ -19,7 +19,8 @@
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
 
         <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.js','resources/js/sensor-sync.js']) 
+
     </head>
     <body class="font-sans antialiased bg-gray-50">
         <div class="min-h-screen">
@@ -39,5 +40,8 @@
                 {{ $slot }}
             </main>
         </div>
+        
+       
+
     </body>
 </html>

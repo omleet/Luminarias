@@ -18,11 +18,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Consumo Energético</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900" id="energy-consumption-value">0</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="relatorios-energy-consumption-value">0</div>
                                 <div class="ml-2 text-sm font-medium text-gray-500">%</div>
                             </dd>
-                            <div class="text-xs text-gray-500 mt-1" id="energy-trend">
-                                <i class="fas fa-sync-alt fa-spin mr-1"></i> Atualizando...
+                            <div class="text-xs text-gray-500 mt-1">
+                                Variação: <span >0-100</span> %
                             </div>
                         </div>
                     </div>
@@ -37,11 +37,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Luminosidade Média</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900" id="light-value">0</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="relatorios-light-value">0</div>
                                 <div class="ml-2 text-sm font-medium text-gray-500">lux</div>
                             </dd>
                             <div class="text-xs text-gray-500 mt-1">
-                                Variação: <span id="light-range">0-0</span> lux
+                                Variação: <span id="relatorios-light-range">0-0</span> lux
                             </div>
                         </div>
                     </div>
@@ -56,11 +56,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Temperatura Média</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900" id="temperature-value">0</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="relatorios-temperature-value">0</div>
                                 <div class="ml-2 text-sm font-medium text-gray-500">°C</div>
                             </dd>
                             <div class="text-xs text-gray-500 mt-1">
-                                Variação: <span id="temperature-range">0-0</span>°C
+                                Variação: <span id="relatorios-temperature-range">0-0</span>°C
                             </div>
                         </div>
                     </div>
@@ -75,11 +75,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Humidade Média</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900" id="humidity-value">0</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="relatorios-humidity-value">0</div>
                                 <div class="ml-2 text-sm font-medium text-gray-500">%</div>
                             </dd>
                             <div class="text-xs text-gray-500 mt-1">
-                                Variação: <span id="humidity-range">0-0</span>%
+                                Variação: <span id="relatorios-humidity-range">0-0</span>%
                             </div>
                         </div>
                     </div>
@@ -95,7 +95,7 @@
                             <i class="fas fa-chart-area text-indigo-500 mr-2"></i> Consumo de Energia
                         </h3>
                     </div>
-                    <div class="h-80" id="energy-chart-container">
+                    <div class="h-80" id="relatorios-energy-chart-container">
                         <canvas></canvas>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                             <i class="fas fa-running text-blue-500 mr-2"></i> Ativações do Sensor de Movimento
                         </h3>
                     </div>
-                    <div class="h-80" id="activations-chart-container">
+                    <div class="h-80" id="relatorios-activations-chart-container">
                         <canvas></canvas>
                     </div>
                 </div>
@@ -214,290 +214,238 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 
-    <script>
-        let energyHistory = [];
-        let energyChart = null;
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        async function initEnergyChart() {
-            const historyResponse = await fetch('/energy-history');
-            const historyData = await historyResponse.json();
+<script>
+    let energyHistory = [];
+    let energyChart = null;
 
-            energyHistory = historyData.map(item => ({
-                value: item.energy,
-                time: item.time
-            }));
+    async function initEnergyChart() {
+        const historyResponse = await fetch('/energy-history');
+        const historyData = await historyResponse.json();
 
-            const energyCtx = document.querySelector('#energy-chart-container canvas');
+        energyHistory = historyData.map(item => ({
+            value: item.energy,
+            time: item.time
+        }));
 
-            energyChart = new Chart(energyCtx, {
-                type: 'line',
-                data: {
-                    labels: energyHistory.map(item => item.time),
-                    datasets: [{
-                        label: 'Consumo de Energia (%)',
-                        data: energyHistory.map(item => item.value),
-                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                        borderColor: 'rgba(99, 102, 241, 1)',
-                        borderWidth: 2,
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
+        const energyCtx = document.querySelector('#relatorios-energy-chart-container canvas');
+
+        energyChart = new Chart(energyCtx, {
+            type: 'line',
+            data: {
+                labels: energyHistory.map(item => item.time),
+                datasets: [{
+                    label: 'Consumo de Energia (%)',
+                    data: energyHistory.map(item => item.value),
+                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
                     }
                 }
-            });
-        }
-
-        async function updateEnergyChart() {
-            try {
-                const response = await fetch('/energy-history'); // ou outro endpoint, se quiseres
-                const data = await response.json();
-
-                energyHistory.push({
-                    value: data.energy,
-                    time: new Date().toLocaleTimeString()
-                });
-
-                if (energyHistory.length > 50) {
-                    energyHistory.shift();
-                }
-
-                updateEnergyChartDisplay();
-            } catch (error) {
-                console.error('Erro ao atualizar gráfico de energia:', error);
             }
-        }
-
-        function updateEnergyChartDisplay() {
-            const labels = energyHistory.map(item => item.time);
-            const values = energyHistory.map(item => item.value);
-
-            energyChart.data.labels = labels;
-            energyChart.data.datasets[0].data = values;
-            energyChart.update();
-        }
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            initEnergyChart();
-            setInterval(updateEnergyChart, 10000); // atualiza de 10 em 10 segundos
         });
+    }
 
+    async function updateEnergyChart() {
+        try {
+            const response = await fetch('/energy-history'); 
+            const data = await response.json();
 
+            energyHistory.push({
+                value: data.energy,
+                time: new Date().toLocaleTimeString()
+            });
 
+            if (energyHistory.length > 50) {
+                energyHistory.shift();
+            }
 
+            updateEnergyChartDisplay();
+        } catch (error) {
+            console.error('Erro ao atualizar gráfico de energia:', error);
+        }
+    }
 
-        // Variável para o gráfico de motion
-        let motionChart;
+    function updateEnergyChartDisplay() {
+        const labels = energyHistory.map(item => item.time);
+        const values = energyHistory.map(item => item.value);
 
-        // Função para inicializar o gráfico de motion
-        function initMotionChart() {
-            const motionCtx = document.querySelector('#activations-chart-container canvas');
-            motionChart = new Chart(motionCtx, {
-                type: 'bar',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Ativações por Sensor',
-                        data: [],
-                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
-                        borderColor: 'rgba(16, 185, 129, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 1,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    return value === 1 ? 'Ativo' : 'Inativo';
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
+        energyChart.data.labels = labels;
+        energyChart.data.datasets[0].data = values;
+        energyChart.update();
+    }
+
+    // Motion chart
+    let motionChart;
+
+    function initMotionChart() {
+        const motionCtx = document.querySelector('#relatorios-activations-chart-container canvas');
+        motionChart = new Chart(motionCtx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Ativações por Sensor',
+                    data: [],
+                    backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value === 1 ? 'Ativo' : 'Inativo';
                             }
                         }
                     },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.parsed.y === 1 ? 'Movimento detectado' : 'Sem movimento';
-                                }
-                            }
-                        },
-                        legend: {
+                    x: {
+                        grid: {
                             display: false
                         }
                     }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y === 1 ? 'Movimento detectado' : 'Sem movimento';
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
                 }
-            });
-        }
-
-        // Função para atualizar o gráfico de motion
-        async function updateMotionChart() {
-            try {
-                const response = await fetch('/motion-data');
-                const data = await response.json();
-
-                if (data.length > 0) {
-                    const labels = data.map(item => item.time);
-                    const motionData = data.map(item => item.motion);
-
-                    motionChart.data.labels = labels;
-                    motionChart.data.datasets[0].data = motionData;
-                    motionChart.update();
-                }
-            } catch (error) {
-                console.error('Erro ao atualizar gráfico de motion:', error);
             }
-        }
-
-        // Inicialização (no DOMContentLoaded)
-        document.addEventListener('DOMContentLoaded', function() {
-            initMotionChart();
-            updateMotionChart();
-
-            // Atualizar a cada 10 segundos
-            setInterval(updateMotionChart, 10000);
         });
-    </script>
+    }
 
+    async function updateMotionChart() {
+        try {
+            const response = await fetch('/motion-data');
+            const data = await response.json();
 
-    <script>
-        //script para os valores médios
-        let lastEnergyValue = 0;
-        let lastLightValue = 0;
-        let lastTemperatureValue = 0;
-        let lastHumidityValue = 0;
+            if (data.length > 0) {
+                const labels = data.map(item => item.time);
+                const motionData = data.map(item => item.motion);
 
-        // Função para atualizar as estatísticas
-        async function updateSensorStats() {
-            try {
-                const response = await fetch('/sensor-averages');
-                const data = await response.json();
-
-                // Verificar se os dados são válidos
-                if (data && typeof data.energy !== 'undefined') {
-                    // Atualizar os valores na interface
-                    updateStatValue('energy-consumption-value', data.energy, lastEnergyValue, '%');
-                    updateStatValue('light-value', data.light, lastLightValue, ' lux');
-                    updateStatValue('temperature-value', data.temperature, lastTemperatureValue, '°C');
-                    updateStatValue('humidity-value', data.humidity, lastHumidityValue, '%');
-
-                    // Atualizar os últimos valores
-                    lastEnergyValue = data.energy;
-                    lastLightValue = data.light;
-                    lastTemperatureValue = data.temperature;
-                    lastHumidityValue = data.humidity;
-
-                    // Atualizar a tendência do consumo energético
-                    updateEnergyTrend(data.energy);
-                } else {
-                    console.error('Dados inválidos recebidos:', data);
-                }
-            } catch (error) {
-                console.error('Erro ao buscar dados dos sensores:', error);
+                motionChart.data.labels = labels;
+                motionChart.data.datasets[0].data = motionData;
+                motionChart.update();
             }
+        } catch (error) {
+            console.error('Erro ao atualizar gráfico de motion:', error);
         }
+    }
 
-        // Função para atualizar um valor individual com animação
-        function updateStatValue(elementId, newValue, oldValue, unit) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
+    // Stats variables
+    let lastEnergyValue = 0;
+    let lastLightValue = 0;
+    let lastTemperatureValue = 0;
+    let lastHumidityValue = 0;
 
-            // Formatar o valor
-            const formattedValue = typeof newValue === 'number' ? newValue.toFixed(1) : newValue;
+    async function updateSensorStats() {
+        try {
+            const response = await fetch('/sensor-averages');
+            const data = await response.json();
 
-            // Adicionar classe de animação
-            element.classList.add('text-yellow-500');
-            element.classList.add('font-bold');
+            if (data && typeof data.energy !== 'undefined') {
+                updateStatValue('relatorios-energy-consumption-value', data.energy, lastEnergyValue, '%');
+                updateStatValue('relatorios-light-value', data.light, lastLightValue, ' lux');
+                updateStatValue('relatorios-temperature-value', data.temperature, lastTemperatureValue, '°C');
+                updateStatValue('relatorios-humidity-value', data.humidity, lastHumidityValue, '%');
 
-            // Atualizar o valor
-            element.textContent = formattedValue;
+                lastEnergyValue = data.energy;
+                lastLightValue = data.light;
+                lastTemperatureValue = data.temperature;
+                lastHumidityValue = data.humidity;
 
-            // Remover a animação após um curto período
-            setTimeout(() => {
-                element.classList.remove('text-yellow-500');
-                element.classList.remove('font-bold');
-            }, 500);
-        }
-
-        // Função para atualizar a tendência do consumo energético
-        function updateEnergyTrend(currentValue) {
-            const trendElement = document.getElementById('energy-trend');
-            if (!trendElement) return;
-
-            if (lastEnergyValue === 0) {
-                trendElement.innerHTML = '<i class="fas fa-info-circle mr-1"></i> Dados iniciais';
-                trendElement.className = 'text-xs text-gray-500 mt-1';
-                return;
-            }
-
-            const difference = currentValue - lastEnergyValue;
-            const percentage = Math.abs((difference / lastEnergyValue) * 100).toFixed(1);
-
-            if (difference > 0) {
-                trendElement.innerHTML = `<i class="fas fa-arrow-up mr-1"></i> ${percentage}% maior que anterior`;
-                trendElement.className = 'text-xs text-red-600 mt-1';
-            } else if (difference < 0) {
-                trendElement.innerHTML = `<i class="fas fa-arrow-down mr-1"></i> ${percentage}% menor que anterior`;
-                trendElement.className = 'text-xs text-green-600 mt-1';
+                updateEnergyTrend(data.energy);
             } else {
-                trendElement.innerHTML = '<i class="fas fa-equals mr-1"></i> Sem alteração';
-                trendElement.className = 'text-xs text-gray-500 mt-1';
+                console.error('Dados inválidos recebidos:', data);
             }
+        } catch (error) {
+            console.error('Erro ao buscar dados dos sensores:', error);
         }
+    }
 
-        // Atualizar os dados imediatamente e a cada 10 segundos
+    function updateStatValue(elementId, newValue, oldValue, unit) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const formattedValue = typeof newValue === 'number' ? newValue.toFixed(1) : newValue;
+
+        element.classList.add('text-yellow-500', 'font-bold');
+        element.textContent = formattedValue ;
+
+        setTimeout(() => {
+            element.classList.remove('text-yellow-500', 'font-bold');
+        }, 500);
+    }
+
+   
+
+    async function updateValueRanges() {
+        try {
+            const response = await fetch('/history');
+            const data = await response.json();
+
+            if (data.length > 0) {
+                const lights = data.map(item => item.light);
+                const temperatures = data.map(item => item.temperature);
+                const humidities = data.map(item => item.humidity);
+
+                document.getElementById('relatorios-light-range').textContent =
+                    `${Math.min(...lights).toFixed(0)}-${Math.max(...lights).toFixed(0)}`;
+                document.getElementById('relatorios-temperature-range').textContent =
+                    `${Math.min(...temperatures).toFixed(1)}-${Math.max(...temperatures).toFixed(1)}`;
+                document.getElementById('relatorios-humidity-range').textContent =
+                    `${Math.min(...humidities).toFixed(0)}-${Math.max(...humidities).toFixed(0)}`;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar intervalos de valores:', error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initEnergyChart();
+        updateEnergyChart();
+        setInterval(updateEnergyChart, 10000);
+
+        initMotionChart();
+        updateMotionChart();
+        setInterval(updateMotionChart, 10000);
+
         updateSensorStats();
         setInterval(updateSensorStats, 10000);
 
-        // Adicione esta função para buscar os intervalos de valores
-        async function updateValueRanges() {
-            try {
-                const response = await fetch('/history');
-                const data = await response.json();
-
-                if (data.length > 0) {
-                    const lights = data.map(item => item.light);
-                    const temperatures = data.map(item => item.temperature);
-                    const humidities = data.map(item => item.humidity);
-
-                    document.getElementById('light-range').textContent =
-                        `${Math.min(...lights).toFixed(0)}-${Math.max(...lights).toFixed(0)}`;
-                    document.getElementById('temperature-range').textContent =
-                        `${Math.min(...temperatures).toFixed(1)}-${Math.max(...temperatures).toFixed(1)}`;
-                    document.getElementById('humidity-range').textContent =
-                        `${Math.min(...humidities).toFixed(0)}-${Math.max(...humidities).toFixed(0)}`;
-                }
-            } catch (error) {
-                console.error('Erro ao buscar intervalos de valores:', error);
-            }
-        }
-
-        // Atualizar os intervalos de valores
         updateValueRanges();
         setInterval(updateValueRanges, 10000);
-    </script>
+    });
+</script>
+
 
 
 

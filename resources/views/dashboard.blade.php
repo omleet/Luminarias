@@ -185,181 +185,46 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Biblioteca para os graficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Lógica dos sensores -->
-    <script>
-        // Configuration
-        const ESP_IP = '192.168.178.140'; // VERIFY THIS IS YOUR ESP's IP
-        const UPDATE_INTERVAL = 2000; // 2 seconds
+<!-- Load global sensor polling script -->
 
-        // DOM Elements
+
+<!-- LED and Motion Display Update Helpers -->
+<script>
+    // These functions update the dashboard UI display (only used in dashboard)
+    function updateLedDisplay(status) {
         const ledStatusElement = document.getElementById('led-status');
         const ledOnElement = document.getElementById('led-on');
         const ledOffElement = document.getElementById('led-off');
-        
-        const lightValueElement = document.getElementById('light-value');
-        const temperatureElement = document.getElementById('temperature-value');
-        const humidityElement = document.getElementById('humidity-value');
 
-        // PIR Elements
+        ledStatusElement.textContent = status;
+        if (status === 'ON') {
+            ledOnElement.classList.remove('hidden');
+            ledOffElement.classList.add('hidden');
+            ledStatusElement.closest('.bg-white')
+                .classList.add('ring-2', 'ring-green-500');
+        } else {
+            ledOnElement.classList.add('hidden');
+            ledOffElement.classList.remove('hidden');
+            ledStatusElement.closest('.bg-white')
+                .classList.remove('ring-2', 'ring-green-500');
+        }
+    }
+
+    function updateMotionDisplay(active) {
         const motionStatusElement = document.getElementById('movement-status');
         const motionActiveBadge = document.getElementById('movement-active');
         const motionInactiveBadge = document.getElementById('movement-inactive');
         const motionContainer = motionStatusElement.closest('.bg-white');
 
-        // Update LED display
-        function updateLedDisplay(status) {
-            ledStatusElement.textContent = status;
-            if (status === 'ON') {
-                ledOnElement.classList.remove('hidden');
-                ledOffElement.classList.add('hidden');
-                ledStatusElement.closest('.bg-white')
-                    .classList.add('ring-2', 'ring-green-500');
-            } else {
-                ledOnElement.classList.add('hidden');
-                ledOffElement.classList.remove('hidden');
-                ledStatusElement.closest('.bg-white')
-                    .classList.remove('ring-2', 'ring-green-500');
-            }
-        }
-
-        // Update Motion display (big text, badge, ring)
-        function updateMotionDisplay(active) {
-            // text
-            motionStatusElement.textContent = active ? 'Ligado' : 'Inativo';
-            // badges
-            motionActiveBadge.classList.toggle('hidden', !active);
-            motionInactiveBadge.classList.toggle('hidden', active);
-            // ring
-            motionContainer.classList.toggle('ring-2', active);
-            motionContainer.classList.toggle('ring-green-500', active);
-        }
-
-        // Generic fetch+json helper
-        async function fetchJson(path, opts = {}) {
-            const res = await fetch(`http://${ESP_IP}${path}`, opts);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return res.json();
-        }
-
-        // Fetchers
-        async function fetchLedState() {
-            try {
-                const data = await fetchJson('/status');
-                return data.led; // "ON" or "OFF"
-            } catch (e) {
-                
-                throw e;
-            }
-        }
-
-        async function fetchLightLevel() {
-            const data = await fetchJson('/light');
-            const lux = analogToLux(data.light);
-            lightValueElement.textContent = `${lux} lx`;
-            return {
-                analog: data.light,
-                lux
-            };
-        }
-
-        async function fetchTemperatureHumidity() {
-            const data = await fetchJson('/temperature');
-            temperatureElement.textContent = `${data.temperature} °C`;
-            humidityElement.textContent = `${data.humidity} %`;
-            return data;
-        }
-
-        async function fetchMotionRaw() {
-            const data = await fetchJson('/motion');
-
-            return data.motion; // true or false
-        }
-
-        // Convert analog value to lux
-        function analogToLux(analogValue) {
-            const inverted = 1024 - analogValue;
-            return Math.round((inverted / 1024) * 1000);
-        }
-
-        // Control LED
-        async function controlLed(state) {
-       
-            await fetch(`http://${ESP_IP}/led/${state}`, {
-                method: 'POST'
-            });
-            const newState = await fetchLedState();
-            updateLedDisplay(newState);
-            
-        }
-
-        // Upload data to DB
-        async function uploadToDatabase(lux, temperature, ledState, motion, humidity) {
-            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            try {
-                await fetch('http://localhost/history', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': token
-                    },
-                    body: JSON.stringify({
-                        light: lux,
-                        temperature,
-                        led_state: ledState,
-                        motion: motion,
-                        humidity: humidity
-                    })
-                });
-                console.log("Data saved to DB.");
-            } catch (err) {
-                console.error("Failed to save to DB:", err);
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            // Button listeners
-
-
-            // Clear initial displays
-            updateLedDisplay('OFF');
-            updateMotionDisplay(false);
-
-            // Polling loop
-            setInterval(async () => {
-                try {
-                    // 1) Fetch LED, light and temp in parallel
-                    const [ledState, lightData, tempHum, rawMotion] = await Promise.all([
-                        fetchLedState(),
-                        fetchLightLevel(),
-                        fetchTemperatureHumidity(),
-                        fetchMotionRaw()
-                    ]);
-                    updateLedDisplay(ledState);
-                    updateMotionDisplay(rawMotion); // 2)  display motion
-
-
-
-
-                    // 3) Auto‑LED by lux
-                    if (lightData.lux < 150 && ledState !== 'ON') {
-                        await controlLed('on');
-                    } else if (lightData.lux >= 150 && ledState !== 'OFF') {
-                        await controlLed('off');
-                    }
-
-                    // 4) Save to DB
-                    await uploadToDatabase(lightData.lux, tempHum.temperature, ledState, rawMotion, tempHum.humidity);
-
-                } catch (err) {
-                    console.error('Polling error:', err);
-                }
-            }, UPDATE_INTERVAL);
-        });
-    </script>
+        motionStatusElement.textContent = active ? 'Ligado' : 'Inativo';
+        motionActiveBadge.classList.toggle('hidden', !active);
+        motionInactiveBadge.classList.toggle('hidden', active);
+        motionContainer.classList.toggle('ring-2', active);
+        motionContainer.classList.toggle('ring-green-500', active);
+    }
+</script>
 
     <!-- Lógica dos Gráficos -->
     <script>
