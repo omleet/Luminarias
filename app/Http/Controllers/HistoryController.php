@@ -405,26 +405,45 @@ class HistoryController extends Controller
 
 
     public function getEnergyHistory()
-    {
-        // Busca os últimos 200 registos e inverte para ordem cronológica
-        $allData = History::orderBy('created_at', 'desc')->take(200)->get()->reverse()->values();
+{
+    // Busca todos os registros (ou um número maior) e inverte para ordem cronológica
+    $allData = History::orderBy('created_at', 'desc')->take(100)->get()->reverse()->values();
 
-        $historyPoints = [];
-
-        // Geração de médias móveis com janela de 50 registos
-        for ($i = 0; $i <= $allData->count() - 50; $i++) {
-            $chunk = $allData->slice($i, 50);
-            $onCount = $chunk->where('led_state', 'ON')->count();
-            $percentageOn = round(($onCount / 50) * 100, 1);
-
-            $timestamp = $chunk->last()->created_at->format('H:i:s');
-
-            $historyPoints[] = [
-                'energy' => $percentageOn,
-                'time' => $timestamp
-            ];
-        }
-
-        return response()->json($historyPoints);
+    if ($allData->isEmpty()) {
+        return response()->json([]);
     }
+
+    $historyPoints = [];
+    $windowSize = 50; // Tamanho da janela para a média móvel
+
+    // Se tivermos menos registros que o tamanho da janela, ajustamos
+    if ($allData->count() < $windowSize) {
+        $onCount = $allData->where('led_state', 'ON')->count();
+        $percentageOn = round(($onCount / $allData->count()) * 100, 1);
+
+        return response()->json([
+            [
+                'energy' => $percentageOn,
+                'time' => $allData->last()->created_at->format('H:i:s')
+            ]
+        ]);
+    }
+
+    // Geração de médias móveis
+    for ($i = 0; $i <= $allData->count() - $windowSize; $i++) {
+        $chunk = $allData->slice($i, $windowSize);
+        $onCount = $chunk->where('led_state', 'ON')->count();
+        $percentageOn = round(($onCount / $windowSize) * 100, 1);
+
+        $timestamp = $chunk->last()->created_at->format('H:i:s');
+
+        $historyPoints[] = [
+            'energy' => $percentageOn,
+            'time' => $timestamp
+        ];
+    }
+
+    return response()->json($historyPoints);
+}
+    
 }

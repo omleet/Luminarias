@@ -219,75 +219,95 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    let energyHistory = [];
-    let energyChart = null;
+   let energyHistory = [];
+let energyChart = null;
 
-    async function initEnergyChart() {
-        const historyResponse = await fetch('/energy-history');
-        const historyData = await historyResponse.json();
+async function initEnergyChart() {
+    const historyResponse = await fetch('/energy-history');
+    const historyData = await historyResponse.json();
 
-        energyHistory = historyData.map(item => ({
+    energyHistory = historyData.map(item => ({
+        value: item.energy,
+        time: item.time
+    }));
+
+    const energyCtx = document.querySelector('#relatorios-energy-chart-container canvas').getContext('2d');
+
+    energyChart = new Chart(energyCtx, {
+        type: 'line',
+        data: {
+            labels: energyHistory.map(item => item.time),
+            datasets: [{
+                label: 'Consumo de Energia (%)',
+                data: energyHistory.map(item => item.value),
+                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                borderColor: 'rgba(99, 102, 241, 1)',
+                borderWidth: 2,
+                tension: 0, // Desativa a suavização da linha
+                fill: true,
+                stepped: true // Mostra passos abruptos entre valores
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        stepSize: 2 // Mostra valores de 2 em 2 no eixo Y
+                    }
+                },
+                x: {
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 10 // Limita o número de labels no eixo X
+                    }
+                }
+            },
+            elements: {
+                line: {
+                    tension: 0 // Desativa a interpolação entre pontos
+                },
+                point: {
+                    radius: 3 // Tamanho dos pontos no gráfico
+                }
+            }
+        }
+    });
+}
+
+// Restante do código permanece igual
+async function updateEnergyChart() {
+    try {
+        const response = await fetch('/energy-history'); 
+        const newData = await response.json();
+
+        energyHistory = newData.map(item => ({
             value: item.energy,
             time: item.time
         }));
 
-        const energyCtx = document.querySelector('#relatorios-energy-chart-container canvas');
-
-        energyChart = new Chart(energyCtx, {
-            type: 'line',
-            data: {
-                labels: energyHistory.map(item => item.time),
-                datasets: [{
-                    label: 'Consumo de Energia (%)',
-                    data: energyHistory.map(item => item.value),
-                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                    borderColor: 'rgba(99, 102, 241, 1)',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
-                }
-            }
-        });
+        updateEnergyChartDisplay();
+    } catch (error) {
+        console.error('Erro ao atualizar gráfico de energia:', error);
     }
+}
 
-    async function updateEnergyChart() {
-        try {
-            const response = await fetch('/energy-history'); 
-            const data = await response.json();
+function updateEnergyChartDisplay() {
+    const labels = energyHistory.map(item => item.time);
+    const values = energyHistory.map(item => item.value);
 
-            energyHistory.push({
-                value: data.energy,
-                time: new Date().toLocaleTimeString()
-            });
+    energyChart.data.labels = labels;
+    energyChart.data.datasets[0].data = values;
+    energyChart.update();
+}
 
-            if (energyHistory.length > 50) {
-                energyHistory.shift();
-            }
-
-            updateEnergyChartDisplay();
-        } catch (error) {
-            console.error('Erro ao atualizar gráfico de energia:', error);
-        }
-    }
-
-    function updateEnergyChartDisplay() {
-        const labels = energyHistory.map(item => item.time);
-        const values = energyHistory.map(item => item.value);
-
-        energyChart.data.labels = labels;
-        energyChart.data.datasets[0].data = values;
-        energyChart.update();
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    initEnergyChart();
+    setInterval(updateEnergyChart, 10000);
+});
 
     // Motion chart
     let motionChart;
@@ -382,7 +402,7 @@
                 lastTemperatureValue = data.temperature;
                 lastHumidityValue = data.humidity;
 
-                updateEnergyTrend(data.energy);
+                
             } else {
                 console.error('Dados inválidos recebidos:', data);
             }
@@ -430,9 +450,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        initEnergyChart();
-        updateEnergyChart();
-        setInterval(updateEnergyChart, 10000);
+      
+        
+        
 
         initMotionChart();
         updateMotionChart();
@@ -443,7 +463,40 @@
 
         updateValueRanges();
         setInterval(updateValueRanges, 10000);
+        
     });
+    
+    async function loadEnergyHistory() {
+        try {
+            const response = await fetch('/energy-history');
+            const historyData = await response.json();
+
+            // Aqui você deve atualizar seu gráfico com os dados históricos
+            updateEnergyChart(historyData);
+        } catch (error) {
+            console.error('Erro ao carregar histórico de energia:', error);
+        }
+    }
+
+    // Chame esta função quando a página carregar
+    document.addEventListener('DOMContentLoaded', function() {
+        initEnergyChart();
+        loadEnergyHistory();
+
+        // Configuração para atualização em tempo real (se já não tiver)
+        setInterval(loadEnergyHistory, 5000); // Atualiza a cada 5 segundos
+    });
+
+    // Função para atualizar o gráfico (adaptar conforme sua biblioteca de gráficos)
+    function updateEnergyChart(data) {
+        // Implementação depende da biblioteca de gráficos que você está usando
+        // Exemplo com Chart.js:
+        if (window.energyChart) {
+            window.energyChart.data.labels = data.map(item => item.time);
+            window.energyChart.data.datasets[0].data = data.map(item => item.energy);
+            window.energyChart.update();
+        }
+    }
 </script>
 
 

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight flex items-center">
-            <i class="fas fa-sliders-h mr-3"></i>{{ __('Controles de Iluminação') }}
+            <i class="fas fa-sliders-h mr-3"></i>{{ __('Controlos de Iluminação') }}
         </h2>
     </x-slot>
 
