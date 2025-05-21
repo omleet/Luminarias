@@ -94,24 +94,9 @@
                         <h3 class="text-lg font-medium text-gray-900 flex items-center">
                             <i class="fas fa-chart-area text-indigo-500 mr-2"></i> Consumo de Energia
                         </h3>
-
                     </div>
-                    <div class="h-80" id="energy-consumption-chart">
-                        <!-- Gráfico será renderizado aqui pelo JavaScript -->
-                        <div class="h-full flex items-center justify-center">
-                            <div class="text-center">
-                                <i class="fas fa-chart-line text-4xl text-gray-300 mb-2"></i>
-                                <p class="text-gray-500">Carregando dados de consumo...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 text-sm text-gray-500 flex justify-between items-center">
-                        <div>
-                            <i class="fas fa-info-circle mr-1"></i> Dados coletados a cada 15 minutos
-                        </div>
-                        <button class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-                            <i class="fas fa-expand mr-1"></i> Ampliar
-                        </button>
+                    <div class="h-80" id="energy-chart-container">
+                        <canvas></canvas>
                     </div>
                 </div>
 
@@ -119,26 +104,11 @@
                 <div class="bg-white shadow rounded-lg p-6 hover:shadow-md transition duration-200">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-medium text-gray-900 flex items-center">
-                            <i class="fas fa-chart-bar text-blue-500 mr-2"></i> Ativações por Sensor
+                            <i class="fas fa-running text-blue-500 mr-2"></i> Ativações do Sensor de Movimento
                         </h3>
-
                     </div>
-                    <div class="h-80" id="sensor-activations-chart">
-                        <!-- Gráfico será renderizado aqui pelo JavaScript -->
-                        <div class="h-full flex items-center justify-center">
-                            <div class="text-center">
-                                <i class="fas fa-chart-bar text-4xl text-gray-300 mb-2"></i>
-                                <p class="text-gray-500">Carregando dados de ativações...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 text-sm text-gray-500 flex justify-between items-center">
-                        <div>
-                            <i class="fas fa-info-circle mr-1"></i> Baseado em detecções de movimento
-                        </div>
-                        <button class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
-                            <i class="fas fa-expand mr-1"></i> Ampliar
-                        </button>
+                    <div class="h-80" id="activations-chart-container">
+                        <canvas></canvas>
                     </div>
                 </div>
             </div>
@@ -151,10 +121,10 @@
                     </h3>
                     <div class="flex items-center space-x-3">
                         <div class="relative">
-                            <input type="text" placeholder="Pesquisar..." class="pl-8 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <input type="text" id="event-search" placeholder="Pesquisar..." class="pl-8 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                         </div>
-                        <button class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                        <button id="refresh-events" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">
                             <i class="fas fa-sync-alt mr-1"></i> Atualizar
                         </button>
                     </div>
@@ -170,15 +140,19 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="event-history-container">
-                            <!-- Os eventos serão carregados aqui -->
+                            <!-- Os eventos serão carregados aqui via JavaScript -->
                         </tbody>
                     </table>
                 </div>
                 <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50 pagination-container">
-                    <!-- A paginação será carregada aqui -->
+                    <div class="flex-1 flex justify-between items-center">
+                        <span id="event-count" class="text-sm text-gray-700"></span>
+                        <div class="flex space-x-2">
+                            <button id="prev-page" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Anterior</button>
+                            <button id="next-page" class="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">Próxima</button>
+                        </div>
+                    </div>
                 </div>
-
-
             </div>
 
             <!-- Exportar Dados -->
@@ -244,153 +218,132 @@
 
 
     <script>
-        // Variáveis globais
-        let energyChart, activationsChart;
-        let currentEventPage = 1;
+        let energyHistory = [];
+        let energyChart = null;
 
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', function() {
-            initDateInputs();
-            loadReportData();
-            loadEventHistory();
+        async function initEnergyChart() {
+            const historyResponse = await fetch('/energy-history');
+            const historyData = await historyResponse.json();
 
-            // Event listeners
-            document.getElementById('apply-filters').addEventListener('click', loadReportData);
-            document.getElementById('reset-filters').addEventListener('click', resetFilters);
-            document.getElementById('report-period').addEventListener('change', toggleCustomDateRange);
+            energyHistory = historyData.map(item => ({
+                value: item.energy,
+                time: item.time
+            }));
 
-            // Event history search
-            document.querySelector('#event-history-search button').addEventListener('click', function() {
-                loadEventHistory(1, document.querySelector('#event-history-search input').value);
-            });
-        });
+            const energyCtx = document.querySelector('#energy-chart-container canvas');
 
-        // Funções principais
-        async function loadReportData() {
-            try {
-                showChartLoading();
-
-                const period = document.getElementById('report-period').value;
-                let url = `/report-data?period=${period}`;
-
-                if (period === 'custom') {
-                    const startDate = document.querySelector('#custom-date-range input:nth-child(1)').value;
-                    const endDate = document.querySelector('#custom-date-range input:nth-child(2)').value;
-                    url += `&start_date=${startDate}&end_date=${endDate}`;
-                }
-
-                const response = await fetch(url);
-                const data = await response.json();
-
-                updateCharts(data);
-                updateStats(data);
-
-            } catch (error) {
-                console.error('Error:', error);
-                showChartError();
-            }
-        }
-
-        async function loadEventHistory(page = 1, search = '') {
-            try {
-                showEventLoading();
-
-                let url = `/event-history?page=${page}`;
-                if (search) url += `&search=${search}`;
-
-                const response = await fetch(url);
-                const {
-                    data,
-                    pagination
-                } = await response.json();
-
-                updateEventTable(data);
-                updatePagination(pagination);
-
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('event-history-container').innerHTML = `
-                <tr>
-                    <td colspan="4" class="text-center py-4 text-red-500">
-                        Erro ao carregar eventos
-                    </td>
-                </tr>
-            `;
-            }
-        }
-
-        // Funções auxiliares
-        function initDateInputs() {
-            const today = new Date().toISOString().split('T')[0];
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            const oneWeekAgoStr = oneWeekAgo.toISOString().split('T')[0];
-
-            const dateInputs = document.querySelectorAll('#custom-date-range input[type="date"]');
-            dateInputs[0].value = oneWeekAgoStr;
-            dateInputs[1].value = today;
-        }
-
-        function toggleCustomDateRange() {
-            const customRange = document.getElementById('custom-date-range');
-            customRange.classList.toggle('hidden', this.value !== 'custom');
-            customRange.classList.toggle('grid', this.value === 'custom');
-        }
-
-        function resetFilters() {
-            document.getElementById('report-period').value = '7d';
-            document.getElementById('sensor-type').value = 'all';
-            document.getElementById('custom-date-range').classList.add('hidden');
-            loadReportData();
-        }
-
-        function updateCharts(data) {
-            // Preparar dados
-            const labels = data.map(item => {
-                if (document.getElementById('report-period').value === '24h') {
-                    return `${item.hour}:00`;
-                }
-                return `${item.date} ${item.hour}:00`;
-            });
-
-            const ledData = data.map(item => item.led_on_count);
-            const motionData = data.map(item => item.motion_count);
-
-            // Atualizar ou criar gráficos
-            if (!energyChart) {
-                energyChart = createChart('energy-consumption-chart', labels, ledData, 'Consumo de Energia', 'rgba(79, 70, 229, 0.8)');
-            } else {
-                updateChart(energyChart, labels, ledData);
-            }
-
-            if (!activationsChart) {
-                activationsChart = createChart('sensor-activations-chart', labels, motionData, 'Ativações por Sensor', 'rgba(59, 130, 246, 0.8)', 'bar');
-            } else {
-                updateChart(activationsChart, labels, motionData);
-            }
-        }
-
-        function createChart(canvasId, labels, data, label, color, type = 'line') {
-            const ctx = document.getElementById(canvasId);
-            ctx.innerHTML = '<canvas></canvas>';
-
-            return new Chart(ctx.querySelector('canvas'), {
-                type: type,
+            energyChart = new Chart(energyCtx, {
+                type: 'line',
                 data: {
-                    labels: labels,
+                    labels: energyHistory.map(item => item.time),
                     datasets: [{
-                        label: label,
-                        data: data,
-                        backgroundColor: color.replace('0.8', '0.2'),
-                        borderColor: color,
+                        label: 'Consumo de Energia (%)',
+                        data: energyHistory.map(item => item.value),
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
                         borderWidth: 2,
-                        fill: type === 'line'
+                        tension: 0.3,
+                        fill: true
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        async function updateEnergyChart() {
+            try {
+                const response = await fetch('/energy-history'); // ou outro endpoint, se quiseres
+                const data = await response.json();
+
+                energyHistory.push({
+                    value: data.energy,
+                    time: new Date().toLocaleTimeString()
+                });
+
+                if (energyHistory.length > 50) {
+                    energyHistory.shift();
+                }
+
+                updateEnergyChartDisplay();
+            } catch (error) {
+                console.error('Erro ao atualizar gráfico de energia:', error);
+            }
+        }
+
+        function updateEnergyChartDisplay() {
+            const labels = energyHistory.map(item => item.time);
+            const values = energyHistory.map(item => item.value);
+
+            energyChart.data.labels = labels;
+            energyChart.data.datasets[0].data = values;
+            energyChart.update();
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            initEnergyChart();
+            setInterval(updateEnergyChart, 10000); // atualiza de 10 em 10 segundos
+        });
+
+
+
+
+
+        // Variável para o gráfico de motion
+        let motionChart;
+
+        // Função para inicializar o gráfico de motion
+        function initMotionChart() {
+            const motionCtx = document.querySelector('#activations-chart-container canvas');
+            motionChart = new Chart(motionCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Ativações por Sensor',
+                        data: [],
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return value === 1 ? 'Ativo' : 'Inativo';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
                     plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y === 1 ? 'Movimento detectado' : 'Sem movimento';
+                                }
+                            }
+                        },
                         legend: {
                             display: false
                         }
@@ -399,165 +352,33 @@
             });
         }
 
-        function updateChart(chart, labels, data) {
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = data;
-            chart.update();
-        }
+        // Função para atualizar o gráfico de motion
+        async function updateMotionChart() {
+            try {
+                const response = await fetch('/motion-data');
+                const data = await response.json();
 
-        function updateStats(data) {
-            if (data.length === 0) return;
+                if (data.length > 0) {
+                    const labels = data.map(item => item.time);
+                    const motionData = data.map(item => item.motion);
 
-            // Calcular médias
-            const lightAvg = data.reduce((sum, item) => sum + item.light_avg, 0) / data.length;
-            const tempAvg = data.reduce((sum, item) => sum + item.temp_avg, 0) / data.length;
-            const humidityAvg = data.reduce((sum, item) => sum + item.humidity_avg, 0) / data.length;
-
-            // Atualizar UI (simplificado)
-            document.querySelectorAll('.stat-card')[1].querySelector('dd div').textContent = lightAvg.toFixed(0) + ' lx';
-            document.querySelectorAll('.stat-card')[2].querySelector('dd div').textContent = tempAvg.toFixed(1) + '°C';
-            document.querySelectorAll('.stat-card')[3].querySelector('dd div').textContent = humidityAvg.toFixed(0) + '%';
-        }
-
-        function updateEventTable(events) {
-            const container = document.getElementById('event-history-container');
-            container.innerHTML = '';
-
-            if (events.length === 0) {
-                container.innerHTML = `
-                <tr>
-                    <td colspan="4" class="text-center py-4 text-gray-500">
-                        Nenhum evento encontrado
-                    </td>
-                </tr>
-            `;
-                return;
+                    motionChart.data.labels = labels;
+                    motionChart.data.datasets[0].data = motionData;
+                    motionChart.update();
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar gráfico de motion:', error);
             }
-
-            events.forEach(event => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-50';
-                row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${new Date(event.created_at).toLocaleString()}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <i class="fas ${getEventIcon(event)} text-${getEventColor(event)}-500 mr-2"></i>
-                        <span class="text-sm font-medium text-gray-900">${getEventType(event)}</span>
-                    </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    ${getEventDetails(event)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${getEventValue(event)}
-                </td>
-            `;
-                container.appendChild(row);
-            });
         }
 
-        function updatePagination(pagination) {
-            const container = document.querySelector('.pagination-container');
-            if (!container) return;
+        // Inicialização (no DOMContentLoaded)
+        document.addEventListener('DOMContentLoaded', function() {
+            initMotionChart();
+            updateMotionChart();
 
-            container.innerHTML = `
-            <div class="text-sm text-gray-500">
-                Mostrando <span class="font-medium">${((pagination.current_page - 1) * pagination.per_page) + 1}</span> 
-                a <span class="font-medium">${Math.min(pagination.current_page * pagination.per_page, pagination.total)}</span> 
-                de <span class="font-medium">${pagination.total}</span> eventos
-            </div>
-            <div class="flex space-x-2">
-                <button onclick="loadEventHistory(${pagination.current_page - 1})" 
-                    class="px-3 py-1 border rounded-md ${pagination.current_page === 1 ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:bg-gray-50'}">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button class="px-3 py-1 bg-indigo-600 text-white rounded-md">
-                    ${pagination.current_page}
-                </button>
-                <button onclick="loadEventHistory(${pagination.current_page + 1})" 
-                    class="px-3 py-1 border rounded-md ${pagination.current_page === pagination.last_page ? 'bg-gray-100 cursor-not-allowed' : 'bg-white hover:bg-gray-50'}">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        `;
-        }
-
-        // Funções de ajuda para eventos
-        function getEventIcon(event) {
-            if (event.led_state === 'ON') return 'fa-lightbulb';
-            if (event.motion) return 'fa-walking';
-            return 'fa-info-circle';
-        }
-
-        function getEventColor(event) {
-            if (event.led_state === 'ON') return 'indigo';
-            if (event.motion) return 'green';
-            return 'blue';
-        }
-
-        function getEventType(event) {
-            if (event.led_state === 'ON') return 'LED Ligado';
-            if (event.motion) return 'Movimento';
-            return 'Leitura';
-        }
-
-        function getEventDetails(event) {
-            if (event.led_state === 'ON') return 'Luzes ligadas';
-            if (event.motion) return 'Movimento detectado';
-            return 'Leitura do sensor';
-        }
-
-        function getEventValue(event) {
-            if (event.led_state === 'ON') return '-';
-            if (event.motion) return '-';
-            return `${event.light} lx, ${event.temperature}°C, ${event.humidity}%`;
-        }
-
-        // Funções de estado
-        function showChartLoading() {
-            ['energy-consumption-chart', 'sensor-activations-chart'].forEach(id => {
-                const chart = document.getElementById(id);
-                chart.innerHTML = `
-                <div class="h-full flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fas fa-spinner fa-spin text-indigo-500 text-2xl mb-2"></i>
-                        <p class="text-gray-600">Carregando dados...</p>
-                    </div>
-                </div>
-            `;
-            });
-        }
-
-        function showChartError() {
-            ['energy-consumption-chart', 'sensor-activations-chart'].forEach(id => {
-                const chart = document.getElementById(id);
-                chart.innerHTML = `
-                <div class="h-full flex items-center justify-center">
-                    <div class="text-center">
-                        <i class="fas fa-exclamation-triangle text-red-500 text-2xl mb-2"></i>
-                        <p class="text-gray-600">Erro ao carregar dados</p>
-                        <button onclick="loadReportData()" class="mt-2 text-indigo-600 hover:text-indigo-800 text-sm">
-                            Tentar novamente
-                        </button>
-                    </div>
-                </div>
-            `;
-            });
-        }
-
-        function showEventLoading() {
-            const container = document.getElementById('event-history-container');
-            container.innerHTML = `
-            <tr>
-                <td colspan="4" class="text-center py-4">
-                    <i class="fas fa-spinner fa-spin text-indigo-500 mr-2"></i>
-                    Carregando...
-                </td>
-            </tr>
-        `;
-        }
+            // Atualizar a cada 10 segundos
+            setInterval(updateMotionChart, 10000);
+        });
     </script>
 
 
@@ -676,6 +497,167 @@
         // Atualizar os intervalos de valores
         updateValueRanges();
         setInterval(updateValueRanges, 10000);
+    </script>
+
+
+
+    <script>
+        // script para a tabela de historico
+        // Variáveis para controle da paginação
+        let currentPage = 1;
+        const perPage = 2;
+        let totalEvents = 0;
+        let searchTerm = '';
+
+        // Função para formatar um valor ou retornar padrão para nulo
+        function formatValue(value, unit = '') {
+            if (value === null || value === undefined) {
+                return 'Dado inválido';
+            }
+            return value + unit;
+        }
+
+        // Função para determinar o tipo de evento com base nos dados
+        function getEventType(item) {
+            if (item.led_state === 'ON') return 'LED';
+            if (item.motion === '1') return 'Movimento';
+            if (item.light !== null) return 'Luminosidade';
+            if (item.temperature !== null) return 'Temperatura';
+            if (item.humidity !== null) return 'Humidade';
+            return 'Evento';
+        }
+
+        // Função para obter detalhes do evento
+        function getEventDetails(item) {
+            if (item.led_state === 'ON') return 'Luz ligada';
+            if (item.led_state === 'OFF') return 'Luz desligada';
+            if (item.motion === '1') return 'Movimento detectado';
+            if (item.motion === '0') return 'Sem movimento';
+            if (item.light !== null) return 'Leitura de luminosidade';
+            if (item.temperature !== null) return 'Leitura de temperatura';
+            if (item.humidity !== null) return 'Leitura de humidade';
+            return 'Evento registado';
+        }
+
+        // Função para obter o valor do evento formatado
+        function getEventValue(item) {
+            if (item.led_state === 'ON' || item.led_state === 'OFF') {
+                return {
+                    value: item.led_state,
+                    invalid: false
+                };
+            }
+            if (item.motion === '1' || item.motion === '0') {
+                return {
+                    value: item.motion === '1' ? 'Sim' : 'Não',
+                    invalid: false
+                };
+            }
+            if (item.light !== null) {
+                return {
+                    value: formatValue(item.light, ' lx'),
+                    invalid: false
+                };
+            }
+            if (item.temperature !== null) {
+                return {
+                    value: formatValue(item.temperature, '°C'),
+                    invalid: false
+                };
+            }
+            if (item.humidity !== null) {
+                return {
+                    value: formatValue(item.humidity, '%'),
+                    invalid: false
+                };
+            }
+            return {
+                value: 'Dado inválido',
+                invalid: true
+            };
+        }
+
+        // Função para carregar os eventos
+        async function loadEvents() {
+            try {
+                // Mostrar loading
+                const container = document.getElementById('event-history-container');
+                container.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center"><i class="fas fa-spinner fa-spin mr-2"></i> Carregando eventos...</td></tr>';
+
+                // Fazer a requisição
+                const response = await fetch(`/event-history?page=${currentPage}&per_page=${perPage}&search=${searchTerm}`);
+                const data = await response.json();
+
+                // Atualizar totais
+                totalEvents = data.pagination.total;
+                document.getElementById('event-count').textContent = `Mostrando ${((currentPage - 1) * perPage) + 1}-${Math.min(currentPage * perPage, totalEvents)} de ${totalEvents} eventos`;
+
+                // Atualizar botões de paginação
+                document.getElementById('prev-page').disabled = currentPage === 1;
+                document.getElementById('next-page').disabled = currentPage === data.pagination.last_page;
+
+                // Renderizar eventos
+                if (data.data.length === 0) {
+                    container.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center">Nenhum evento encontrado</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                data.data.forEach(event => {
+                    const eventTime = new Date(event.time.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}:\d{2})/, '$3-$2-$1 $4'));
+                    const formattedTime = eventTime.toLocaleString('pt-PT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                    html += `
+                        <tr>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedTime}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${event.type}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${event.details}</td>
+        <td class="px-6 py-4 whitespace-nowrap text-sm ${event.invalid ? 'text-red-600 font-medium' : 'text-gray-500'}">
+            ${event.value}
+        </td>
+    </tr>
+`;
+                });
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Erro ao carregar eventos:', error);
+                document.getElementById('event-history-container').innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-red-500">Erro ao carregar eventos</td></tr>';
+            }
+        }
+
+        // Event listeners
+        document.getElementById('refresh-events').addEventListener('click', () => {
+            currentPage = 1;
+            loadEvents();
+        });
+
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadEvents();
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', () => {
+            currentPage++;
+            loadEvents();
+        });
+
+        document.getElementById('event-search').addEventListener('input', (e) => {
+            searchTerm = e.target.value;
+            currentPage = 1;
+            loadEvents();
+        });
+
+        // Carregar eventos inicialmente
+        document.addEventListener('DOMContentLoaded', loadEvents);
     </script>
 
 </x-app-layout>

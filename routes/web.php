@@ -59,5 +59,7 @@ Route::get('/export/history/excel', [HistoryController::class, 'exportExcel'])->
 Route::get('/export/history/csv', [HistoryController::class, 'exportCSV'])->name('export.history.csv');
 Route::get('/export/history/pdf', [HistoryController::class, 'exportPDF'])->name('export.history.pdf');
 Route::get('/sensor-averages', [HistoryController::class, 'getSensorAverages']);
+Route::get('/motion-data', [HistoryController::class, 'getMotionData']);
+Route::get('/energy-history', [HistoryController::class, 'getEnergyHistory']);
 
 require __DIR__ . '/auth.php';

@@ -227,77 +227,76 @@ class HistoryController extends Controller
 
     public function eventHistory(Request $request)
     {
-        $perPage = 10;
+        $perPage = $request->get('per_page', 10);
         $page = $request->get('page', 1);
+        $search = $request->get('search', '');
 
         $query = History::orderBy('created_at', 'desc');
 
-        // Aplicar filtros se existirem
-        if ($request->has('search')) {
-            $query->where(function ($q) use ($request) {
-                $q->where('led_state', 'like', '%' . $request->search . '%')
-                    ->orWhere('motion', 'like', '%' . $request->search . '%');
+        // Aplicar filtro de pesquisa
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('led_state', 'like', '%' . $search . '%')
+                    ->orWhere('motion', 'like', '%' . $search . '%')
+                    ->orWhere('light', 'like', '%' . $search . '%')
+                    ->orWhere('temperature', 'like', '%' . $search . '%')
+                    ->orWhere('humidity', 'like', '%' . $search . '%');
             });
         }
 
+        // Pegar os últimos 250 registros (ou mais se necessário)
         $histories = $query->paginate($perPage, ['*'], 'page', $page);
 
         $formattedData = $histories->map(function ($item) {
             $events = [];
 
-            if ($item->led_state === 'ON') {
-                $events[] = [
-                    'type' => 'LED',
-                    'icon' => 'lightbulb',
-                    'icon_color' => 'indigo',
-                    'details' => 'Luzes ligadas',
-                    'value' => '-',
-                    'time' => $item->created_at->format('d/m/Y H:i')
-                ];
-            }
+            // Evento LED
+            $events[] = [
+                'type' => 'LED',
+                'details' => $item->led_state === 'ON' ? 'Luz ligada' : 'Luz desligada',
+                'value' => $item->led_state ?? 'Dado inválido',
+                
+                'time' => $item->created_at->format('d/m/Y H:i')
+            ];
 
-            if ($item->motion) {
-                $events[] = [
-                    'type' => 'Movimento',
-                    'icon' => 'walking',
-                    'icon_color' => 'green',
-                    'details' => 'Movimento detectado',
-                    'value' => '-',
-                    'time' => $item->created_at->format('d/m/Y H:i')
-                ];
-            }
+            // Evento Movimento
+            $events[] = [
+                'type' => 'Movimento',
+                'details' => $item->motion == '1' ? 'Movimento detectado' : 'Sem movimento',
+                'value' => $item->motion == '1' ? 'Sim' : 'Não',
+                
+                'time' => $item->created_at->format('d/m/Y H:i')
+            ];
 
+            // Evento Luminosidade
             $events[] = [
                 'type' => 'Luminosidade',
-                'icon' => 'sun',
-                'icon_color' => 'yellow',
-                'details' => 'Leitura',
-                'value' => $item->light . ' lx',
+                'details' => 'Leitura de sensor',
+                'value' => $item->light !== null ? round($item->light, 1) . ' lx' : 'Dado inválido',
+                
                 'time' => $item->created_at->format('d/m/Y H:i')
             ];
 
+            // Evento Temperatura
             $events[] = [
                 'type' => 'Temperatura',
-                'icon' => 'thermometer-half',
-                'icon_color' => 'red',
-                'details' => 'Leitura',
-                'value' => $item->temperature . '°C',
+                'details' => 'Leitura de sensor',
+                'value' => $item->temperature !== null ? round($item->temperature, 1) . '°C' : 'Dado inválido',
+                
                 'time' => $item->created_at->format('d/m/Y H:i')
             ];
 
+            // Evento Humidade
             $events[] = [
                 'type' => 'Humidade',
-                'icon' => 'tint',
-                'icon_color' => 'blue',
-                'details' => 'Leitura',
-                'value' => $item->humidity . '%',
+                'details' => 'Leitura de sensor',
+                'value' => $item->humidity !== null ? round($item->humidity, 1) . '%' : 'Dado inválido',
+                
                 'time' => $item->created_at->format('d/m/Y H:i')
             ];
 
             return $events;
-        })
-            ->flatten(1)
-            ->take($perPage);
+        })->flatten(1);
 
         return response()->json([
             'data' => $formattedData,
@@ -382,5 +381,50 @@ class HistoryController extends Controller
         ];
 
         return response()->json($averages);
+    }
+
+    public function getMotionData()
+    {
+        // últimos 50 registros
+        $latestData = History::orderBy('created_at', 'desc')->take(50)->get();
+
+        if ($latestData->isEmpty()) {
+            return response()->json([]);
+        }
+
+        // Formatamos os dados para o gráfico
+        $data = $latestData->map(function ($item) {
+            return [
+                'motion' => $item->motion == '1' ? 1 : 0, // 1 para movimento, 0 para sem movimento
+                'time' => $item->created_at->format('H:i:s')
+            ];
+        })->reverse()->values(); // Invertemos para ordem cronológica
+
+        return response()->json($data);
+    }
+
+
+    public function getEnergyHistory()
+    {
+        // Busca os últimos 200 registos e inverte para ordem cronológica
+        $allData = History::orderBy('created_at', 'desc')->take(200)->get()->reverse()->values();
+
+        $historyPoints = [];
+
+        // Geração de médias móveis com janela de 50 registos
+        for ($i = 0; $i <= $allData->count() - 50; $i++) {
+            $chunk = $allData->slice($i, 50);
+            $onCount = $chunk->where('led_state', 'ON')->count();
+            $percentageOn = round(($onCount / 50) * 100, 1);
+
+            $timestamp = $chunk->last()->created_at->format('H:i:s');
+
+            $historyPoints[] = [
+                'energy' => $percentageOn,
+                'time' => $timestamp
+            ];
+        }
+
+        return response()->json($historyPoints);
     }
 }
