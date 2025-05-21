@@ -58,5 +58,6 @@ Route::get('/history', [HistoryController::class, 'index']);
 Route::get('/export/history/excel', [HistoryController::class, 'exportExcel'])->name('export.history.excel');
 Route::get('/export/history/csv', [HistoryController::class, 'exportCSV'])->name('export.history.csv');
 Route::get('/export/history/pdf', [HistoryController::class, 'exportPDF'])->name('export.history.pdf');
+Route::get('/sensor-averages', [HistoryController::class, 'getSensorAverages']);
 
 require __DIR__ . '/auth.php';

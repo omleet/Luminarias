@@ -357,4 +357,30 @@ class HistoryController extends Controller
 
         return $pdf->download('relatorio-sensores.pdf');
     }
+
+    //funcao para a pagina relatorios dos valores em real time dos sensores em media de valores
+    public function getSensorAverages()
+    {
+        //  últimos 50 registros
+        $latestData = History::orderBy('created_at', 'desc')->take(50)->get();
+
+        if ($latestData->isEmpty()) {
+            return response()->json([
+                'energy' => 0,
+                'light' => 0,
+                'temperature' => 0,
+                'humidity' => 0
+            ]);
+        }
+
+        // Calcular médias
+        $averages = [
+            'energy' => round(($latestData->where('led_state', 'ON')->count() / $latestData->count()) * 100, 1), // % de tempo com LED ligado
+            'light' => round($latestData->avg('light'), 1),
+            'temperature' => round($latestData->avg('temperature'), 1),
+            'humidity' => round($latestData->avg('humidity'), 1)
+        ];
+
+        return response()->json($averages);
+    }
 }

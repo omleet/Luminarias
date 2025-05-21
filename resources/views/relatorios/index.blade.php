@@ -7,58 +7,6 @@
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <!-- Filtros -->
-            <div class="bg-white shadow rounded-lg p-6 mb-8">
-                <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-filter text-indigo-500 mr-2"></i> Filtros
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Período</label>
-                        <select id="report-period" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                            <option value="24h">Últimas 24 horas</option>
-                            <option value="7d" selected>Últimos 7 dias</option>
-                            <option value="30d">Últimos 30 dias</option>
-                            <option value="custom">Personalizado</option>
-                        </select>
-                    </div>
-
-                    <div id="custom-date-range" class="hidden col-span-2 grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Inicial</label>
-                            <input type="date" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Data Final</label>
-                            <input type="date" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Sensor</label>
-                        <select id="sensor-type" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                            <option value="all">Todos os sensores</option>
-                            <option value="light">Luminosidade</option>
-                            <option value="temp">Temperatura</option>
-                            <option value="humidity">Humidade</option>
-                            <option value="motion">Movimento</option>
-                        </select>
-                    </div>
-
-
-
-                    <div class="md:col-span-4 flex justify-end space-x-3">
-                        <button id="apply-filters" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md transition duration-200">
-                            Aplicar Filtros
-                        </button>
-                        <button id="reset-filters" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-md transition duration-200">
-                            Limpar
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <!-- Estatísticas Resumidas -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <!-- Consumo Energético -->
@@ -70,11 +18,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Consumo Energético</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">24.5</div>
-                                <div class="ml-2 text-sm font-medium text-gray-500">kWh</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="energy-consumption-value">0</div>
+                                <div class="ml-2 text-sm font-medium text-gray-500">%</div>
                             </dd>
-                            <div class="text-xs text-green-600 mt-1">
-                                <i class="fas fa-arrow-down mr-1"></i> 12% menor que semana passada
+                            <div class="text-xs text-gray-500 mt-1" id="energy-trend">
+                                <i class="fas fa-sync-alt fa-spin mr-1"></i> Atualizando...
                             </div>
                         </div>
                     </div>
@@ -89,11 +37,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Luminosidade Média</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">320</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="light-value">0</div>
                                 <div class="ml-2 text-sm font-medium text-gray-500">lux</div>
                             </dd>
                             <div class="text-xs text-gray-500 mt-1">
-                                Variação: 150-500 lux
+                                Variação: <span id="light-range">0-0</span> lux
                             </div>
                         </div>
                     </div>
@@ -108,11 +56,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Temperatura Média</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">22.4</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="temperature-value">0</div>
                                 <div class="ml-2 text-sm font-medium text-gray-500">°C</div>
                             </dd>
                             <div class="text-xs text-gray-500 mt-1">
-                                Variação: 18.5-26.2°C
+                                Variação: <span id="temperature-range">0-0</span>°C
                             </div>
                         </div>
                     </div>
@@ -127,11 +75,11 @@
                         <div class="ml-5 w-0 flex-1">
                             <dt class="text-sm font-medium text-gray-500 truncate">Humidade Média</dt>
                             <dd class="flex items-baseline">
-                                <div class="text-2xl font-semibold text-gray-900">65</div>
+                                <div class="text-2xl font-semibold text-gray-900" id="humidity-value">0</div>
                                 <div class="ml-2 text-sm font-medium text-gray-500">%</div>
                             </dd>
                             <div class="text-xs text-gray-500 mt-1">
-                                Variação: 45-80%
+                                Variação: <span id="humidity-range">0-0</span>%
                             </div>
                         </div>
                     </div>
@@ -146,11 +94,7 @@
                         <h3 class="text-lg font-medium text-gray-900 flex items-center">
                             <i class="fas fa-chart-area text-indigo-500 mr-2"></i> Consumo de Energia
                         </h3>
-                        <div class="flex space-x-2">
-                            <button class="text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded">Dia</button>
-                            <button class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">Semana</button>
-                            <button class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">Mês</button>
-                        </div>
+
                     </div>
                     <div class="h-80" id="energy-consumption-chart">
                         <!-- Gráfico será renderizado aqui pelo JavaScript -->
@@ -177,11 +121,7 @@
                         <h3 class="text-lg font-medium text-gray-900 flex items-center">
                             <i class="fas fa-chart-bar text-blue-500 mr-2"></i> Ativações por Sensor
                         </h3>
-                        <div class="flex space-x-2">
-                            <button class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">Dia</button>
-                            <button class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">Semana</button>
-                            <button class="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded">Mês</button>
-                        </div>
+
                     </div>
                     <div class="h-80" id="sensor-activations-chart">
                         <!-- Gráfico será renderizado aqui pelo JavaScript -->
@@ -618,6 +558,124 @@
             </tr>
         `;
         }
+    </script>
+
+
+    <script>
+        //script para os valores médios
+        let lastEnergyValue = 0;
+        let lastLightValue = 0;
+        let lastTemperatureValue = 0;
+        let lastHumidityValue = 0;
+
+        // Função para atualizar as estatísticas
+        async function updateSensorStats() {
+            try {
+                const response = await fetch('/sensor-averages');
+                const data = await response.json();
+
+                // Verificar se os dados são válidos
+                if (data && typeof data.energy !== 'undefined') {
+                    // Atualizar os valores na interface
+                    updateStatValue('energy-consumption-value', data.energy, lastEnergyValue, '%');
+                    updateStatValue('light-value', data.light, lastLightValue, ' lux');
+                    updateStatValue('temperature-value', data.temperature, lastTemperatureValue, '°C');
+                    updateStatValue('humidity-value', data.humidity, lastHumidityValue, '%');
+
+                    // Atualizar os últimos valores
+                    lastEnergyValue = data.energy;
+                    lastLightValue = data.light;
+                    lastTemperatureValue = data.temperature;
+                    lastHumidityValue = data.humidity;
+
+                    // Atualizar a tendência do consumo energético
+                    updateEnergyTrend(data.energy);
+                } else {
+                    console.error('Dados inválidos recebidos:', data);
+                }
+            } catch (error) {
+                console.error('Erro ao buscar dados dos sensores:', error);
+            }
+        }
+
+        // Função para atualizar um valor individual com animação
+        function updateStatValue(elementId, newValue, oldValue, unit) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            // Formatar o valor
+            const formattedValue = typeof newValue === 'number' ? newValue.toFixed(1) : newValue;
+
+            // Adicionar classe de animação
+            element.classList.add('text-yellow-500');
+            element.classList.add('font-bold');
+
+            // Atualizar o valor
+            element.textContent = formattedValue;
+
+            // Remover a animação após um curto período
+            setTimeout(() => {
+                element.classList.remove('text-yellow-500');
+                element.classList.remove('font-bold');
+            }, 500);
+        }
+
+        // Função para atualizar a tendência do consumo energético
+        function updateEnergyTrend(currentValue) {
+            const trendElement = document.getElementById('energy-trend');
+            if (!trendElement) return;
+
+            if (lastEnergyValue === 0) {
+                trendElement.innerHTML = '<i class="fas fa-info-circle mr-1"></i> Dados iniciais';
+                trendElement.className = 'text-xs text-gray-500 mt-1';
+                return;
+            }
+
+            const difference = currentValue - lastEnergyValue;
+            const percentage = Math.abs((difference / lastEnergyValue) * 100).toFixed(1);
+
+            if (difference > 0) {
+                trendElement.innerHTML = `<i class="fas fa-arrow-up mr-1"></i> ${percentage}% maior que anterior`;
+                trendElement.className = 'text-xs text-red-600 mt-1';
+            } else if (difference < 0) {
+                trendElement.innerHTML = `<i class="fas fa-arrow-down mr-1"></i> ${percentage}% menor que anterior`;
+                trendElement.className = 'text-xs text-green-600 mt-1';
+            } else {
+                trendElement.innerHTML = '<i class="fas fa-equals mr-1"></i> Sem alteração';
+                trendElement.className = 'text-xs text-gray-500 mt-1';
+            }
+        }
+
+        // Atualizar os dados imediatamente e a cada 10 segundos
+        updateSensorStats();
+        setInterval(updateSensorStats, 10000);
+
+        // Adicione esta função para buscar os intervalos de valores
+        async function updateValueRanges() {
+            try {
+                const response = await fetch('/history');
+                const data = await response.json();
+
+                if (data.length > 0) {
+                    const lights = data.map(item => item.light);
+                    const temperatures = data.map(item => item.temperature);
+                    const humidities = data.map(item => item.humidity);
+
+                    document.getElementById('light-range').textContent =
+                        `${Math.min(...lights).toFixed(0)}-${Math.max(...lights).toFixed(0)}`;
+                    document.getElementById('temperature-range').textContent =
+                        `${Math.min(...temperatures).toFixed(1)}-${Math.max(...temperatures).toFixed(1)}`;
+                    document.getElementById('humidity-range').textContent =
+                        `${Math.min(...humidities).toFixed(0)}-${Math.max(...humidities).toFixed(0)}`;
+                }
+            } catch (error) {
+                console.error('Erro ao buscar intervalos de valores:', error);
+            }
+        }
+
+        // Atualizar os intervalos de valores
+        updateValueRanges();
+        setInterval(updateValueRanges, 10000);
     </script>
 
 </x-app-layout>
