@@ -1,5 +1,3 @@
-// sensor-sync.js
-
 // ========== Configuration ==========
 const ESP_IP = '192.168.1.100';
 const UPDATE_INTERVAL = 2000;
@@ -39,9 +37,7 @@ async function fetchMotionRaw() {
 }
 
 async function controlLed(state) {
-    await fetch(`http://${ESP_IP}/led/${state}`, {
-        method: 'POST'
-    });
+    await fetch(`http://${ESP_IP}/led/${state}`, { method: 'POST' });
 }
 
 async function uploadToDatabase(lux, temperature, ledState, motion, humidity) {
@@ -55,25 +51,18 @@ async function uploadToDatabase(lux, temperature, ledState, motion, humidity) {
                 'Accept': 'application/json',
                 'X-CSRF-TOKEN': token
             },
-            body: JSON.stringify({
-                light: lux,
-                temperature,
-                led_state: ledState,
-                motion,
-                humidity
-            })
+            body: JSON.stringify({ light: lux, temperature, led_state: ledState, motion, humidity })
         });
     } catch (err) {
         console.error("DB upload failed:", err);
     }
 }
 
-// ========== DOM Display Updates (only on dashboard) ==========
+// ========== DOM Display Updates ==========
 function updateLedDisplay(status) {
     const el = document.getElementById('led-status');
     const ledOn = document.getElementById('led-on');
     const ledOff = document.getElementById('led-off');
-
     if (!el || !ledOn || !ledOff) return;
 
     el.textContent = status;
@@ -93,7 +82,6 @@ function updateMotionDisplay(active) {
     const activeBadge = document.getElementById('movement-active');
     const inactiveBadge = document.getElementById('movement-inactive');
     const container = el?.closest('.bg-white');
-
     if (!el || !activeBadge || !inactiveBadge || !container) return;
 
     el.textContent = active ? 'Ligado' : 'Inativo';
@@ -113,25 +101,71 @@ function updateSensorValues(lux, temp, humidity) {
     if (humEl) humEl.textContent = `${humidity} %`;
 }
 
+// ========== State Getters ==========
+function getSensorState(sensorKey, defaultValue = false) {
+    const stored = localStorage.getItem(sensorKey);
+    if (stored === null) return defaultValue;
+    return stored === 'true';
+}
+
+function saveSensorStateFromDOM(id, key) {
+    const el = document.getElementById(id);
+    if (el) {
+        localStorage.setItem(key, el.checked ? 'true' : 'false');
+    }
+}
+
 // ========== Main Polling Loop ==========
 document.addEventListener('DOMContentLoaded', () => {
+    // Atualiza o localStorage caso o utilizador mude os toggles (na página controlos)
+    const sensorIds = [
+        ['motion-sensor-toggle', 'motionSensorEnabled'],
+        ['light-sensor-toggle', 'lightSensorEnabled'],
+        ['temperature-sensor-toggle', 'temperatureSensorEnabled'],
+        ['humidity-sensor-toggle', 'humiditySensorEnabled']
+    ];
+
+    sensorIds.forEach(([domId, key]) => {
+        const el = document.getElementById(domId);
+        if (el) {
+            // Sincronizar toggle inicial com o localStorage
+            el.checked = getSensorState(key, true);
+            el.addEventListener('change', () => {
+                localStorage.setItem(key, el.checked ? 'true' : 'false');
+            });
+        }
+    });
+
+    // Se não existir, define autoControl como ativo
+    if (localStorage.getItem('autoControlEnabled') === null) {
+        localStorage.setItem('autoControlEnabled', 'true');
+    }
+
     setInterval(async () => {
+        const autoControlEnabled = localStorage.getItem('autoControlEnabled') === 'true';
+
+        // Ler estado atual dos sensores do localStorage
+        const motionEnabled = getSensorState('motionSensorEnabled', true);
+        const lightEnabled = getSensorState('lightSensorEnabled', true);
+        const tempEnabled = getSensorState('temperatureSensorEnabled', true);
+        const humidityEnabled = getSensorState('humiditySensorEnabled', true);
+
         try {
             const [ledState, lightData, tempHum, rawMotion] = await Promise.all([
                 fetchLedState(),
-                fetchLightLevel(),
-                fetchTemperatureHumidity(),
-                fetchMotionRaw()
+                lightEnabled || autoControlEnabled ? fetchLightLevel() : Promise.resolve({ analog: 0, lux: 0 }),
+                tempEnabled || humidityEnabled || autoControlEnabled ? fetchTemperatureHumidity() : Promise.resolve({ temperature: 0, humidity: 0 }),
+                motionEnabled || autoControlEnabled ? fetchMotionRaw() : Promise.resolve(0)
             ]);
 
-            // Auto control LED
-            if (lightData.lux < 150 && ledState !== 'ON') {
-                await controlLed('on');
-            } else if (lightData.lux >= 150 && ledState !== 'OFF') {
-                await controlLed('off');
+            if (autoControlEnabled) {
+                if (lightData.lux < 150 && ledState !== 'ON') {
+                    await controlLed('on');
+                } else if (lightData.lux >= 150 && ledState !== 'OFF') {
+                    await controlLed('off');
+                }
             }
 
-            // Upload to database
             await uploadToDatabase(
                 lightData.lux,
                 tempHum.temperature,
@@ -140,12 +174,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 tempHum.humidity
             );
 
-            // Only update DOM if on dashboard
+            // Só atualiza DOM se existir (ex: dashboard pode não ter todos)
             if (document.getElementById('temperature-value')) {
                 updateLedDisplay(ledState);
-                updateMotionDisplay(rawMotion);
-                updateSensorValues(lightData.lux, tempHum.temperature, tempHum.humidity);
+                updateMotionDisplay(motionEnabled || autoControlEnabled ? rawMotion : 0);
+                updateSensorValues(
+                    lightEnabled || autoControlEnabled ? lightData.lux : 0,
+                    tempEnabled || autoControlEnabled ? tempHum.temperature : 0,
+                    humidityEnabled || autoControlEnabled ? tempHum.humidity : 0
+                );
             }
+
         } catch (err) {
             console.error('Sensor polling error:', err);
         }

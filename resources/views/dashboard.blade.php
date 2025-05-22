@@ -224,6 +224,7 @@
         motionContainer.classList.toggle('ring-2', active);
         motionContainer.classList.toggle('ring-green-500', active);
     }
+ 
 </script>
 
     <!-- Lógica dos Gráficos -->
