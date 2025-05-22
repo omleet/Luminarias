@@ -188,6 +188,17 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     };
+    function updateLedStatusBadge(isOn) {
+    const el = document.getElementById('led-status');
+    if (!el) return;
+
+    el.textContent = isOn ? 'Ligado' : 'Desligado';
+
+    el.classList.toggle('bg-green-100', isOn);
+    el.classList.toggle('text-green-800', isOn);
+    el.classList.toggle('bg-gray-100', !isOn);
+    el.classList.toggle('text-gray-800', !isOn);
+}
 
     // --- Save toggle changes and update status ---
     Object.keys(sensorToggles).forEach(toggleId => {
@@ -249,6 +260,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const res = await fetch('http://192.168.1.100/led/on', { method: 'POST' });
                 const status = document.getElementById('led-control-status');
                 status.textContent = res.ok ? 'LED ligado manualmente.' : 'Erro ao ligar LED.';
+                if (res.ok) updateLedStatusBadge(true);
             } catch {
                 document.getElementById('led-control-status').textContent = 'Falha na comunicação com o Arduino.';
             }
@@ -261,6 +273,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const res = await fetch('http://192.168.1.100/led/off', { method: 'POST' });
                 const status = document.getElementById('led-control-status');
                 status.textContent = res.ok ? 'LED desligado manualmente.' : 'Erro ao desligar LED.';
+                if (res.ok) updateLedStatusBadge(false);
             } catch {
                 document.getElementById('led-control-status').textContent = 'Falha na comunicação com o Arduino.';
             }
