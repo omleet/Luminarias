@@ -40,6 +40,16 @@ async function controlLed(state) {
     await fetch(`http://${ESP_IP}/led/${state}`, { method: 'POST' });
 }
 
+async function setLedBrightness(value) {
+    try {
+        await fetch(`http://${ESP_IP}/led/brightness?value=${value}`, {
+            method: 'POST'
+        });
+    } catch (err) {
+        console.error('Erro ao ajustar brilho:', err);
+    }
+}
+
 async function uploadToDatabase(lux, temperature, ledState, motion, humidity) {
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
     if (!token) return;
@@ -101,6 +111,8 @@ function updateSensorValues(lux, temp, humidity) {
     if (humEl) humEl.textContent = `${humidity} %`;
 }
 
+
+
 // ========== State Getters ==========
 function getSensorState(sensorKey, defaultValue = false) {
     const stored = localStorage.getItem(sensorKey);
@@ -159,10 +171,17 @@ document.addEventListener('DOMContentLoaded', () => {
             ]);
 
             if (autoControlEnabled) {
-                if (lightData.lux < 150 && ledState !== 'ON') {
-                    await controlLed('on');
-                } else if (lightData.lux >= 150 && ledState !== 'OFF') {
-                    await controlLed('off');
+                if (lightData.lux < 150) {
+                    if (rawMotion) {
+                        // Motion detected: full brightness
+                        await setLedBrightness(255);
+                    } else {
+                        // No motion: dim mode
+                        await setLedBrightness(128);
+                    }
+                } else {
+                    // Light is sufficient: turn off LED
+                    await setLedBrightness(0);
                 }
             }
 

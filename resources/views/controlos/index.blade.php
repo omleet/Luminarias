@@ -42,6 +42,17 @@
                                     <button id="led-off-btn" class="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 text-sm">
                                         Desligar
                                     </button>
+
+                                </div>
+                                <div class="mt-6">
+                                    <label for="led-brightness-slider" class="block text-sm font-medium text-gray-700 mb-1">
+                                        Nível de Brilho (0–255)
+                                    </label>
+                                    <input type="range" id="led-brightness-slider" min="0" max="255" value="128"
+                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <div class="text-sm text-gray-600 mt-2">
+                                        Valor atual: <span id="led-brightness-value">128</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -151,139 +162,190 @@
 
 
     <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const toggleBtn = document.getElementById('toggle-controls');
-    const statusText = document.getElementById('sensor-status-text');
-    const container = document.getElementById('controls-container');
-    const ledOnBtn = document.getElementById('led-on-btn');
-    const ledOffBtn = document.getElementById('led-off-btn');
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('toggle-controls');
+            const statusText = document.getElementById('sensor-status-text');
+            const container = document.getElementById('controls-container');
+            const ledOnBtn = document.getElementById('led-on-btn');
+            const ledOffBtn = document.getElementById('led-off-btn');
+            const brightnessSlider = document.getElementById('led-brightness-slider');
+            const brightnessValueText = document.getElementById('led-brightness-value');
 
-    const sensorToggles = {
-        'motion-sensor-toggle': 'motion-sensor-status',
-        'light-sensor-toggle': 'light-sensor-status',
-        'temperature-sensor-toggle': 'temperature-sensor-status',
-        'humidity-sensor-toggle': 'humidity-sensor-status',
-    };
+            const sensorToggles = {
+                'motion-sensor-toggle': 'motion-sensor-status',
+                'light-sensor-toggle': 'light-sensor-status',
+                'temperature-sensor-toggle': 'temperature-sensor-status',
+                'humidity-sensor-toggle': 'humidity-sensor-status',
+            };
 
-    // --- Restore toggle states from localStorage ---
-    Object.keys(sensorToggles).forEach(toggleId => {
-        const saved = localStorage.getItem(toggleId);
-        const toggle = document.getElementById(toggleId);
-        if (toggle && saved !== null) {
-            toggle.checked = saved === 'true';
+            // --- Restore toggle states from localStorage ---
+            Object.keys(sensorToggles).forEach(toggleId => {
+                const saved = localStorage.getItem(toggleId);
+                const toggle = document.getElementById(toggleId);
+                if (toggle && saved !== null) {
+                    toggle.checked = saved === 'true';
+                }
+            });
+
+            // --- Update sensor status text and color ---
+            const updateSensorStatuses = () => {
+                for (const [toggleId, statusId] of Object.entries(sensorToggles)) {
+                    const toggle = document.getElementById(toggleId);
+                    const status = document.getElementById(statusId);
+                    if (toggle && status) {
+                        status.textContent = toggle.checked ? 'Ligado' : 'Desligado';
+                        status.classList.toggle('bg-green-100', toggle.checked);
+                        status.classList.toggle('text-green-800', toggle.checked);
+                        status.classList.toggle('bg-gray-100', !toggle.checked);
+                        status.classList.toggle('text-gray-800', !toggle.checked);
+                    }
+                }
+            };
+
+            function updateLedStatusBadge(isOn) {
+                const el = document.getElementById('led-status');
+                if (!el) return;
+
+                el.textContent = isOn ? 'Ligado' : 'Desligado';
+
+                el.classList.toggle('bg-green-100', isOn);
+                el.classList.toggle('text-green-800', isOn);
+                el.classList.toggle('bg-gray-100', !isOn);
+                el.classList.toggle('text-gray-800', !isOn);
+            }
+
+            // --- Save toggle changes and update status ---
+            Object.keys(sensorToggles).forEach(toggleId => {
+                const toggle = document.getElementById(toggleId);
+                if (toggle) {
+                    toggle.addEventListener('change', () => {
+                        localStorage.setItem(toggleId, toggle.checked);
+                        updateSensorStatuses();
+                    });
+                }
+            });
+
+            // --- Enable/disable LED buttons ---
+            const updateLedButtons = (enabled) => {
+                [ledOnBtn, ledOffBtn].forEach(btn => {
+                    if (btn) {
+                        btn.disabled = !enabled;
+                        btn.classList.toggle('opacity-50', !enabled);
+                        btn.classList.toggle('cursor-not-allowed', !enabled);
+                    }
+                    if (brightnessSlider) {
+    brightnessSlider.disabled = !enabled;
+    brightnessSlider.classList.toggle('opacity-50', !enabled);
+    brightnessSlider.classList.toggle('cursor-not-allowed', !enabled);
+}
+                });
+            };
+
+            // --- Set mode based on localStorage ---
+            const setMode = (isAuto) => {
+                localStorage.setItem('autoControlEnabled', isAuto);
+
+                if (isAuto) {
+                    toggleBtn.textContent = 'Desligar controlo automático';
+                    toggleBtn.classList.remove('bg-green-600');
+                    toggleBtn.classList.add('bg-red-600');
+                    statusText.textContent = 'Os sensores estão a operar de forma automática, de acordo com a programação definida no Arduino.';
+                    container.classList.add('hidden');
+                    updateLedButtons(false);
+                } else {
+                    toggleBtn.textContent = 'Ligar controlo automático';
+                    toggleBtn.classList.remove('bg-red-600');
+                    toggleBtn.classList.add('bg-green-600');
+                    statusText.textContent = 'Os sensores estão desligados. O controlo está agora em modo manual.';
+                    container.classList.remove('hidden');
+                    updateLedButtons(true);
+                }
+            };
+
+            // --- On load: apply saved mode ---
+            const isAuto = localStorage.getItem('autoControlEnabled') === 'true';
+            setMode(isAuto);
+
+            // --- When button is clicked: toggle mode ---
+            toggleBtn.addEventListener('click', () => {
+                const currentState = localStorage.getItem('autoControlEnabled') === 'true';
+                setMode(!currentState);
+            });
+
+            // --- Manual LED controls ---
+            if (ledOnBtn) {
+    ledOnBtn.addEventListener('click', async () => {
+        const brightnessValue = parseInt(brightnessSlider.value, 10);
+        const status = document.getElementById('led-control-status');
+
+        try {
+            // First, call /led/on to log/update the system
+            const onRes = await fetch('http://192.168.1.100/led/on', {
+                method: 'POST'
+            });
+
+            if (!onRes.ok) {
+                status.textContent = 'Erro ao ligar LED.';
+                return;
+            }
+
+            // Then, adjust brightness separately
+            const brightnessRes = await fetch(`http://192.168.1.100/led/brightness?value=${brightnessValue}`, {
+                method: 'POST'
+            });
+
+            if (brightnessRes.ok) {
+                status.textContent = `LED ligado com brilho ${brightnessValue}.`;
+                updateLedStatusBadge(true);
+                brightnessValueText.textContent = brightnessValue;
+            } else {
+                status.textContent = 'LED ligado mas houve erro ao ajustar o brilho.';
+            }
+
+        } catch {
+            status.textContent = 'Falha na comunicação com o Arduino.';
         }
     });
-
-    // --- Update sensor status text and color ---
-    const updateSensorStatuses = () => {
-        for (const [toggleId, statusId] of Object.entries(sensorToggles)) {
-            const toggle = document.getElementById(toggleId);
-            const status = document.getElementById(statusId);
-            if (toggle && status) {
-                status.textContent = toggle.checked ? 'Ligado' : 'Desligado';
-                status.classList.toggle('bg-green-100', toggle.checked);
-                status.classList.toggle('text-green-800', toggle.checked);
-                status.classList.toggle('bg-gray-100', !toggle.checked);
-                status.classList.toggle('text-gray-800', !toggle.checked);
-            }
-        }
-    };
-    function updateLedStatusBadge(isOn) {
-    const el = document.getElementById('led-status');
-    if (!el) return;
-
-    el.textContent = isOn ? 'Ligado' : 'Desligado';
-
-    el.classList.toggle('bg-green-100', isOn);
-    el.classList.toggle('text-green-800', isOn);
-    el.classList.toggle('bg-gray-100', !isOn);
-    el.classList.toggle('text-gray-800', !isOn);
 }
 
-    // --- Save toggle changes and update status ---
-    Object.keys(sensorToggles).forEach(toggleId => {
-        const toggle = document.getElementById(toggleId);
-        if (toggle) {
-            toggle.addEventListener('change', () => {
-                localStorage.setItem(toggleId, toggle.checked);
-                updateSensorStatuses();
+            if (ledOffBtn) {
+                ledOffBtn.addEventListener('click', async () => {
+                    try {
+                        const res = await fetch('http://192.168.1.100/led/off', {
+                            method: 'POST'
+                        });
+                        const status = document.getElementById('led-control-status');
+                        status.textContent = res.ok ? 'LED desligado manualmente.' : 'Erro ao desligar LED.';
+                        if (res.ok) updateLedStatusBadge(false);
+                    } catch {
+                        document.getElementById('led-control-status').textContent = 'Falha na comunicação com o Arduino.';
+                    }
+                });
+            }
+            if (brightnessSlider) {
+    brightnessSlider.addEventListener('input', async () => {
+        const value = parseInt(brightnessSlider.value, 10);
+        brightnessValueText.textContent = value;
+
+        try {
+            const res = await fetch(`http://192.168.1.100/led/brightness?value=${value}`, {
+                method: 'POST'
             });
+            const status = document.getElementById('led-control-status');
+            status.textContent = res.ok
+                ? `Brilho ajustado para ${value}.`
+                : 'Erro ao ajustar brilho.';
+            updateLedStatusBadge(value > 0);
+        } catch {
+            document.getElementById('led-control-status').textContent = 'Falha na comunicação com o Arduino.';
         }
     });
+}
 
-    // --- Enable/disable LED buttons ---
-    const updateLedButtons = (enabled) => {
-        [ledOnBtn, ledOffBtn].forEach(btn => {
-            if (btn) {
-                btn.disabled = !enabled;
-                btn.classList.toggle('opacity-50', !enabled);
-                btn.classList.toggle('cursor-not-allowed', !enabled);
-            }
+            // Initial sync
+            updateSensorStatuses();
         });
-    };
-
-    // --- Set mode based on localStorage ---
-    const setMode = (isAuto) => {
-        localStorage.setItem('autoControlEnabled', isAuto);
-
-        if (isAuto) {
-            toggleBtn.textContent = 'Desligar controlo automático';
-            toggleBtn.classList.remove('bg-green-600');
-            toggleBtn.classList.add('bg-red-600');
-            statusText.textContent = 'Os sensores estão a operar de forma automática, de acordo com a programação definida no Arduino.';
-            container.classList.add('hidden');
-            updateLedButtons(false);
-        } else {
-            toggleBtn.textContent = 'Ligar controlo automático';
-            toggleBtn.classList.remove('bg-red-600');
-            toggleBtn.classList.add('bg-green-600');
-            statusText.textContent = 'Os sensores estão desligados. O controlo está agora em modo manual.';
-            container.classList.remove('hidden');
-            updateLedButtons(true);
-        }
-    };
-
-    // --- On load: apply saved mode ---
-    const isAuto = localStorage.getItem('autoControlEnabled') === 'true';
-    setMode(isAuto);
-
-    // --- When button is clicked: toggle mode ---
-    toggleBtn.addEventListener('click', () => {
-        const currentState = localStorage.getItem('autoControlEnabled') === 'true';
-        setMode(!currentState);
-    });
-
-    // --- Manual LED controls ---
-    if (ledOnBtn) {
-        ledOnBtn.addEventListener('click', async () => {
-            try {
-                const res = await fetch('http://192.168.1.100/led/on', { method: 'POST' });
-                const status = document.getElementById('led-control-status');
-                status.textContent = res.ok ? 'LED ligado manualmente.' : 'Erro ao ligar LED.';
-                if (res.ok) updateLedStatusBadge(true);
-            } catch {
-                document.getElementById('led-control-status').textContent = 'Falha na comunicação com o Arduino.';
-            }
-        });
-    }
-
-    if (ledOffBtn) {
-        ledOffBtn.addEventListener('click', async () => {
-            try {
-                const res = await fetch('http://192.168.1.100/led/off', { method: 'POST' });
-                const status = document.getElementById('led-control-status');
-                status.textContent = res.ok ? 'LED desligado manualmente.' : 'Erro ao desligar LED.';
-                if (res.ok) updateLedStatusBadge(false);
-            } catch {
-                document.getElementById('led-control-status').textContent = 'Falha na comunicação com o Arduino.';
-            }
-        });
-    }
-
-    // Initial sync
-    updateSensorStatuses();
-});
-</script>
+    </script>
 
 
 
