@@ -1,0 +1,186 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <DallasTemperature.h>
+#include <DHT.h> 
+
+
+// WiFi credentials
+const char* ssid = "MEO-4B0E40";
+const char* password = "bc550f4764";
+
+// Pin definitions
+#define LED_PIN D1
+#define PIR_PIN D4
+#define DHT_PIN D2
+
+#define DHT_TYPE DHT22
+
+// Create web server on port 80
+ESP8266WebServer server(80);
+
+// LED state
+bool ledState = false;
+
+
+// PIR debounce settings
+const int PIR_THRESHOLD = 50;    // consecutive HIGH readings needed
+int pirHighCount = 0;
+bool motionState = false;
+// OneWire and temperature sensor setup
+int ledBrightness = 0;
+
+DHT dht(DHT_PIN, DHT_TYPE);
+
+
+
+
+// CORS support
+void sendCORSHeaders() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+// Handlers
+void handleStatus() {
+  String json = "{\"led\":\"" + String(ledState ? "ON" : "OFF") + "\"}";
+  sendCORSHeaders();
+  server.send(200, "application/json", json);
+}
+
+void handleLedOn() {
+  digitalWrite(LED_PIN, HIGH);
+  ledState = true;
+  sendCORSHeaders();
+  server.send(200, "application/json", "{\"led\":\"ON\"}");
+}
+
+void handleLedOff() {
+  digitalWrite(LED_PIN, LOW);
+  ledState = false;
+  sendCORSHeaders();
+  server.send(200, "application/json", "{\"led\":\"OFF\"}");
+}
+
+void handleLight() {
+  int lightValue = analogRead(A0);  // 0–1023
+  String json = "{\"light\":" + String(lightValue) + "}";
+  
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.send(200, "application/json", json);
+}
+
+void handleTemperature() {
+  // Read temperature and humidity from DHT22 (AM2302) sensor
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();  // Temperature in Celsius
+  
+  // Check if the reading failed
+  if (isnan(temperature) || isnan(humidity)) {
+    server.send(500, "application/json", "{\"error\":\"Failed to read from DHT sensor\"}");
+    return;
+  }
+
+  // Send temperature and humidity as JSON response
+  String json = "{\"temperature\":" + String(temperature, 2) + ",\"humidity\":" + String(humidity, 2) + "}";
+  sendCORSHeaders();
+  server.send(200, "application/json", json);
+}
+
+void handleMotion() {
+  // Return the current debounced motion state
+  String json = "{\"motion\":" + String(motionState ? "true" : "false") + "}";
+  sendCORSHeaders();
+  server.send(200, "application/json", json);
+}
+
+void handleLedBrightness() {
+  if (!server.hasArg("value")) {
+    server.send(400, "application/json", "{\"error\":\"Missing brightness value\"}");
+    return;
+  }
+
+  int value = server.arg("value").toInt();
+  value = constrain(value, 0, 255);
+
+  analogWrite(LED_PIN, value);
+  ledBrightness = value;
+  ledState = value > 0;
+
+  sendCORSHeaders();
+  server.send(200, "application/json", "{\"brightness\":" + String(value) + "}");
+}
+
+
+
+void handleOptions() {
+  sendCORSHeaders();
+  server.send(204);
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(PIR_PIN, INPUT);
+  digitalWrite(LED_PIN, LOW);
+
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+  Serial.println(WiFi.localIP());
+
+  // Start temperature sensor
+  dht.begin();
+
+  // Web server routes
+  server.on("/status", handleStatus);
+  server.on("/led/on", handleLedOn);
+  server.on("/led/off", handleLedOff);
+  server.on("/light", handleLight); 
+  server.on("/temperature", handleTemperature);
+  server.on("/motion", handleMotion);
+  server.on("/led/brightness", handleLedBrightness);
+
+ // CORS preflight
+
+
+  // CORS preflight
+  server.on("/led/on", HTTP_OPTIONS, handleOptions);
+  server.on("/led/off", HTTP_OPTIONS, handleOptions);
+  server.on("/status", HTTP_OPTIONS, handleOptions);
+  server.on("/light", HTTP_OPTIONS, handleOptions);
+  server.on("/temperature", HTTP_OPTIONS, handleOptions);
+  server.on("/motion", HTTP_OPTIONS, handleOptions); 
+  server.on("/led/brightness", HTTP_OPTIONS, handleLedBrightness);
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void loop() {
+  
+  server.handleClient();
+  // PIR debounce logic
+  int raw = digitalRead(PIR_PIN);
+  if (raw == HIGH) {
+    pirHighCount++;
+    if (pirHighCount >= PIR_THRESHOLD && !motionState) {
+      motionState = true;
+      Serial.println("Motion detected!");
+    }
+  } else {
+    pirHighCount = 0;
+    if (motionState) {
+      motionState = false;
+      Serial.println("Motion ended.");
+    }
+  }
+
+  // Optional: adjust loop timing
+  delay(50);
+
+}
