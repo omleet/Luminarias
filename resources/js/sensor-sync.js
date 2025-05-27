@@ -1,5 +1,5 @@
 // ========== Configuration ==========
-const ESP_IP = '192.168.1.100';
+const ESP_IP = window.ESP_IP;
 const UPDATE_INTERVAL = 2000;
 
 // ========== Helpers ==========

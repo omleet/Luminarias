@@ -17,7 +17,9 @@
 
         <!-- Icons -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
-
+        <script>
+    window.ESP_IP = "{{ env('ESP_IP') }}";
+</script>
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js','resources/js/sensor-sync.js']) 
 

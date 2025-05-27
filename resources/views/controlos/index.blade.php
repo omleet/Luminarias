@@ -162,6 +162,7 @@
 
 
     <script>
+        
     document.addEventListener('DOMContentLoaded', function() {
         const toggleBtn = document.getElementById('toggle-controls');
         const statusText = document.getElementById('sensor-status-text');
@@ -299,9 +300,9 @@
                 const brightnessValue = parseInt(brightnessSlider.value, 10);
 
                 try {
-                    const res = await fetch(`http://192.168.1.100/led/brightness?value=${brightnessValue}`, {
-                        method: 'POST'
-                    });
+                    const res = await fetch(`http://${window.ESP_IP}/led/brightness?value=${brightnessValue}`, {
+    method: 'POST'
+});
 
                     const status = document.getElementById('led-control-status');
                     status.textContent = res.ok
@@ -325,7 +326,7 @@
         if (ledOffBtn) {
             ledOffBtn.addEventListener('click', async () => {
                 try {
-                    const res = await fetch('http://192.168.1.100/led/off', {
+                    const res = await fetch(`http://${window.ESP_IP}/led/off`, {
                         method: 'POST'
                     });
                     const status = document.getElementById('led-control-status');
@@ -347,7 +348,7 @@
                 brightnessValueText.textContent = value;
 
                 try {
-                    const res = await fetch(`http://192.168.1.100/led/brightness?value=${value}`, {
+                    const res = await fetch(`http://${window.ESP_IP}/led/brightness?value=${value}`, {
                         method: 'POST'
                     });
                     const status = document.getElementById('led-control-status');
