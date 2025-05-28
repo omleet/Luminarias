@@ -128,7 +128,15 @@ function saveSensorStateFromDOM(id, key) {
 }
 
 // ========== Main Polling Loop ==========
+
+
 document.addEventListener('DOMContentLoaded', () => {
+    const savedIp = localStorage.getItem('espIp');
+        if (savedIp) {
+            window.ESP_IP = savedIp;
+        } else {
+            console.warn('ESP IP not found in localStorage!');
+        }
     // Atualiza o localStorage caso o utilizador mude os toggles (na página controlos)
     const sensorIds = [
         ['motion-sensor-toggle', 'motionSensorEnabled'],
