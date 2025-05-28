@@ -11,14 +11,19 @@ export default defineConfig({
         }),
         vue(),
     ],
-     server: {
-        host: '0.0.0.0', // Accept connections from the network
-        port: 5173,
-        hmr: {
-          host: '192.168.1.81', // <-- Your laptop's IP address
+    server: {
+        host: '0.0.0.0',           // Listen on all interfaces
+        port: 5174,                // Or whatever you're using
+        strictPort: true,
+        cors: {
+          origin: '*',             // Allow all origins (or specify one)
+          methods: ['GET', 'POST'],
+          allowedHeaders: ['Content-Type'],
         },
+        hmr: {
+          host: '192.168.1.81',    // Your main dev PC's local IP
+        }
       },
-      
       
     resolve: {
         alias: {
