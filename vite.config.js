@@ -11,14 +11,14 @@ export default defineConfig({
         }),
         vue(),
     ],
-     /*server: {
+     server: {
         host: '0.0.0.0', // Accept connections from the network
         port: 5173,
         hmr: {
-          host: '192.168.178.233', // <-- Your laptop's IP address
+          host: '192.168.1.81', // <-- Your laptop's IP address
         },
       },
-      */
+      
       
     resolve: {
         alias: {

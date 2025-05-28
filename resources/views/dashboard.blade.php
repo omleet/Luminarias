@@ -7,7 +7,41 @@
     </x-slot>
 
     <div class="py-6">
+
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto mb-6">
+                <div class="bg-white shadow rounded-lg p-6 border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-network-wired text-blue-600 mr-2"></i> Configuração de IP do ESP
+                    </h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="flex-1">
+                            <label for="esp-ip-input" class="block text-sm font-medium text-gray-600 mb-1">Endereço IP</label>
+                            <input
+                                type="text"
+                                id="esp-ip-input"
+                                class="form-input w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                placeholder="Ex: 192.168.1.100">
+                        </div>
+                        <div>
+                            <label class="block text-sm text-white select-none mb-1 invisible">Botão</label>
+                            <button
+                                id="save-esp-ip-btn"
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <i class="fas fa-save mr-2"></i> Guardar IP
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-3 flex items-center gap-2">
+    IP atual: 
+    <span id="current-esp-ip" class="font-semibold text-gray-700">192.168.1.100</span>
+    <span id="ip-status-badge" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-200 text-gray-600">
+        Verificando...
+    </span>
+</p>
+                </div>
+            </div>
+
             <!-- Status Overview -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <!-- Sensor de Movimento -->
@@ -163,7 +197,7 @@
                 </div>
             </div>
 
-            
+
 
             <!-- Recent Activity -->
             <div class="bg-white shadow rounded-lg overflow-hidden">
@@ -184,48 +218,99 @@
 
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ipInput = document.getElementById('esp-ip-input');
+            const saveBtn = document.getElementById('save-esp-ip-btn');
+            const currentIp = document.getElementById('current-esp-ip');
+            const ipStatusBadge = document.getElementById('ip-status-badge');
+
+            // Load saved IP
+            const savedIp = localStorage.getItem('espIp');
+            if (savedIp) {
+                ipInput.value = savedIp;
+                currentIp.textContent = savedIp;
+                window.ESP_IP = savedIp; // Set global JS variable
+            }
+
+            saveBtn.addEventListener('click', () => {
+    const newIp = ipInput.value.trim();
+    if (!/^(\d{1,3}\.){3}\d{1,3}$/.test(newIp)) {
+        alert('Endereço IP inválido.');
+        return;
+    }
+
+    localStorage.setItem('espIp', newIp);
+    window.ESP_IP = newIp;
+    alert('IP do ESP guardado com sucesso! A página será recarregada.');
+
+    // Small delay for user to see alert before reload
+    setTimeout(() => {
+        location.reload();
+    }, 300);
+});
+function checkEspConnection(ip) {
+    fetch(`http://${ip}/ping`, { method: 'GET', mode: 'no-cors' })
+        .then(() => {
+            ipStatusBadge.textContent = 'Conectado';
+            ipStatusBadge.classList.remove('bg-gray-200', 'text-gray-600');
+            ipStatusBadge.classList.add('bg-green-100', 'text-green-700');
+        })
+        .catch(() => {
+            ipStatusBadge.textContent = 'Desconectado';
+            ipStatusBadge.classList.remove('bg-gray-200', 'text-gray-600');
+            ipStatusBadge.classList.add('bg-red-100', 'text-red-700');
+        });
+}
+
+// Run connectivity check if we have a saved IP
+if (savedIp) {
+    checkEspConnection(savedIp);
+}
+
+        });
+    </script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Load global sensor polling script -->
+    <!-- Load global sensor polling script -->
 
 
-<!-- LED and Motion Display Update Helpers -->
-<script>
-    // These functions update the dashboard UI display (only used in dashboard)
-    function updateLedDisplay(status) {
-        const ledStatusElement = document.getElementById('led-status');
-        const ledOnElement = document.getElementById('led-on');
-        const ledOffElement = document.getElementById('led-off');
+    <!-- LED and Motion Display Update Helpers -->
+    <script>
+        // These functions update the dashboard UI display (only used in dashboard)
+        function updateLedDisplay(status) {
+            const ledStatusElement = document.getElementById('led-status');
+            const ledOnElement = document.getElementById('led-on');
+            const ledOffElement = document.getElementById('led-off');
 
-        ledStatusElement.textContent = status;
-        if (status === 'ON') {
-            ledOnElement.classList.remove('hidden');
-            ledOffElement.classList.add('hidden');
-            ledStatusElement.closest('.bg-white')
-                .classList.add('ring-2', 'ring-green-500');
-        } else {
-            ledOnElement.classList.add('hidden');
-            ledOffElement.classList.remove('hidden');
-            ledStatusElement.closest('.bg-white')
-                .classList.remove('ring-2', 'ring-green-500');
+            ledStatusElement.textContent = status;
+            if (status === 'ON') {
+                ledOnElement.classList.remove('hidden');
+                ledOffElement.classList.add('hidden');
+                ledStatusElement.closest('.bg-white')
+                    .classList.add('ring-2', 'ring-green-500');
+            } else {
+                ledOnElement.classList.add('hidden');
+                ledOffElement.classList.remove('hidden');
+                ledStatusElement.closest('.bg-white')
+                    .classList.remove('ring-2', 'ring-green-500');
+            }
         }
-    }
 
-    function updateMotionDisplay(active) {
-        const motionStatusElement = document.getElementById('movement-status');
-        const motionActiveBadge = document.getElementById('movement-active');
-        const motionInactiveBadge = document.getElementById('movement-inactive');
-        const motionContainer = motionStatusElement.closest('.bg-white');
+        function updateMotionDisplay(active) {
+            const motionStatusElement = document.getElementById('movement-status');
+            const motionActiveBadge = document.getElementById('movement-active');
+            const motionInactiveBadge = document.getElementById('movement-inactive');
+            const motionContainer = motionStatusElement.closest('.bg-white');
 
-        motionStatusElement.textContent = active ? 'Ligado' : 'Inativo';
-        motionActiveBadge.classList.toggle('hidden', !active);
-        motionInactiveBadge.classList.toggle('hidden', active);
-        motionContainer.classList.toggle('ring-2', active);
-        motionContainer.classList.toggle('ring-green-500', active);
-    }
- 
-</script>
+            motionStatusElement.textContent = active ? 'Ligado' : 'Inativo';
+            motionActiveBadge.classList.toggle('hidden', !active);
+            motionInactiveBadge.classList.toggle('hidden', active);
+            motionContainer.classList.toggle('ring-2', active);
+            motionContainer.classList.toggle('ring-green-500', active);
+        }
+    </script>
 
     <!-- Lógica dos Gráficos -->
     <script>

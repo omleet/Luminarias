@@ -1,5 +1,5 @@
 // ========== Configuration ==========
-const ESP_IP = window.ESP_IP;
+const ESP_IP = localStorage.getItem('espIp');
 const UPDATE_INTERVAL = 2000;
 
 // ========== Helpers ==========
